@@ -1,8 +1,8 @@
-import { StyleSheet, Pressable, Text } from 'react-native'
+import { StyleSheet, Pressable, Text, Image } from 'react-native'
 import { Link } from 'expo-router'
 import { colors } from '../../constants/colors'  
 
-
+import Logo from '../../assets/img/logo.png'
 import ThemedView from '../../components/ThemedView'
 import Spacer from '../../components/Spacer'
 import ThemedText from '../../components/ThemedText'
@@ -18,31 +18,24 @@ const Login = () => {
     <ThemedView style={[styles.container]}>
 
         <Spacer />
+        <Image source={Logo} style={styles.img}></Image>
         <ThemedText title={true} style={styles.title}>
-            LostnFound</ThemedText>
+            You Found Me!</ThemedText>
 
         <Spacer height={100} />
 
             <ThemedText title={true} style={styles.title}>
             Create an account</ThemedText>
 
-            <ThemedText style={{ textAlign: 'center'}}>
-                Enter your username to sign up.
-            </ThemedText>
-
             <ThemedButton onPress={handleSubmit}>
             <Text style= {{ color: '#f2f2f2'}}>Login</Text>
         </ThemedButton>
 
-            <Spacer height={250} />
+            <Spacer height={100} />
 
             <ThemedText style={{ textAlign: 'center'}}>
                 Don't have an account yet? <Link href='/register'>Sign up </Link>
             </ThemedText>
-
-            <Link href="/">
-            <ThemedText>Back Home</ThemedText>
-            </Link>
 
 
         </ThemedView>
@@ -70,5 +63,8 @@ const styles = StyleSheet.create({
     pressed: {
         opacity: 0.8
     
+    },
+    img: {
+
     }
 })
