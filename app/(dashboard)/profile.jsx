@@ -1,0 +1,35 @@
+import { StyleSheet } from 'react-native'
+
+import ThemedView from '../../components/ThemedView'
+import Spacer from '../../components/Spacer'
+import ThemedText from '../../components/ThemedText'
+
+const Profile = () => {
+  return (
+    <ThemedView style={styles.container}>
+        <ThemedText title={true} style={styles.heading}>
+            Profile Page
+
+        </ThemedText>
+    <Spacer />
+
+    </ThemedView>
+  )
+}
+
+export default Profile
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    heading: {
+        fontWeigh: 'bold',
+        fontSize: 18,
+        textAlign: 'center',
+    },
+
+
+})
