@@ -1,4 +1,4 @@
-import { StyleSheet, Pressable, Text, Image } from 'react-native'
+import { Keyboard, StyleSheet, Pressable, Text, Image, TouchableWithoutFeedback } from 'react-native'
 import { Link } from 'expo-router'
 import { colors } from '../../constants/colors'  
 
@@ -7,25 +7,56 @@ import ThemedView from '../../components/ThemedView'
 import Spacer from '../../components/Spacer'
 import ThemedText from '../../components/ThemedText'
 import ThemedButton from '../../components/ThemedButton'
+import ThemedTextInput from '../../components/ThemedTextInput'
+import { useState } from 'react'
+import { useUser } from '../../hooks/useUser'
+
+
 
 const Login = () => {
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+
+    const { user } = useUser()
+
 
     const handleSubmit = () => {
-        console.log('Login pressed')
+        console.log('current user:', user)
+        console.log('Login pressed', email, password)
     }
 
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <ThemedView style={[styles.container]}>
 
         <Spacer />
-        <Image source={Logo} style={styles.img}></Image>
         <ThemedText title={true} style={styles.title}>
-            You Found Me!</ThemedText>
+            LostnFound</ThemedText>
 
         <Spacer height={100} />
 
             <ThemedText title={true} style={styles.title}>
             Create an account</ThemedText>
+
+        <Spacer height={10} />
+
+            <ThemedTextInput 
+                style={{ width: '80%', marginBottom: 20}}
+                placeholder="Email"
+                keyboardType="email-address"
+                onChangeText={setEmail}
+                value={email} 
+
+                />
+
+            <ThemedTextInput
+            style={{ width: '80%', marginBottom: 20}}
+                placeholder="Password"
+                onChangeText={setPassword}
+                value={password}
+                secureTextEntry
+
+                />
 
             <ThemedButton onPress={handleSubmit}>
             <Text style= {{ color: '#f2f2f2'}}>Login</Text>
@@ -39,6 +70,7 @@ const Login = () => {
 
 
         </ThemedView>
+        </TouchableWithoutFeedback>
   )
 }
 
