@@ -4,11 +4,11 @@ import ThemedView from '../../components/ThemedView'
 import Spacer from '../../components/Spacer'
 import ThemedText from '../../components/ThemedText'
 
-const Notifications = () => {
+const Contacts = () => {
   return (
     <ThemedView style={styles.container}>
         <ThemedText title={true} style={styles.heading}>
-           Notifcation Page
+            Notification Page
 
         </ThemedText>
     <Spacer />
@@ -17,7 +17,7 @@ const Notifications = () => {
   )
 }
 
-export default Notifications
+export default Contacts
 
 const styles = StyleSheet.create({
     container: {

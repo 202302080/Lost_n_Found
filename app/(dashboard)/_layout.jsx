@@ -36,6 +36,20 @@ const DashboardLayout = () => {
 
 
         <Tabs.Screen 
+            name="messages" 
+            options={{ 
+                title: 'Messages', 
+                tabBarIcon: ({ focused }) => (
+                    <Ionicons
+                        size={24}
+                        name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
+                        color={focused ? theme.iconColorFocused : theme.iconColor}
+                    />
+                ) 
+            }}
+        />
+
+        <Tabs.Screen 
         name="create" 
         options={{ title: 'Create', tabBarIcon: ({ focused }) => (
             <Ionicons
@@ -46,6 +60,23 @@ const DashboardLayout = () => {
         ) }}/>
 
 
+
+
+        <Tabs.Screen 
+        name="notifications" 
+        options={{ 
+            title: 'Notifications', 
+            tabBarIcon: ({ focused }) => (
+            <Ionicons
+                size={24}
+
+                name={focused ? 'notifications' : 'notifications-outline'}
+                color={focused ? theme.iconColorFocused : theme.iconColor}
+            />
+            ) 
+        }}
+        />
+
         <Tabs.Screen 
         name="profile" 
         options={{ title: 'Profile', tabBarIcon: ({focused}) => (
@@ -54,29 +85,6 @@ const DashboardLayout = () => {
                 name={focused ? 'person' : 'person-outline'}
                 color={focused ? theme.iconColorFocused : theme.iconColor}
             />
-        ) }}/>
-
-
-        <Tabs.Screen 
-        name="contacts" 
-        options={{ title: 'Contacts', tabBarIcon: ({focused}) => (
-            <Ionicons
-                size ={24}
-                name={focused ? 'people' : 'people-outline'}
-                color={focused ? theme.iconColorFocused : theme.iconColor}
-            />
-
-        ) }}/>
-
-        <Tabs.Screen 
-        name="notifications" 
-        options={{ title: 'Notifications', tabBarIcon: ({ focused }) => (
-            <Ionicons
-                size ={24}
-                name={focused ? 'notifications' : 'notifications-outline'}
-                color={focused ? theme.iconColorFocused : theme.iconColor}
-            />
-
         ) }}/>
 
 

@@ -27,8 +27,8 @@ const Home = () => {
       <Link href="/register">
       <ThemedText>Register</ThemedText></Link>
 
-      <Link href="/profile">
-      <ThemedText>Profile</ThemedText></Link>
+      <Link href="/feed">
+      <ThemedText>Home</ThemedText></Link>
 
     </ThemedView>
   )
