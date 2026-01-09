@@ -1,35 +1,176 @@
-import { StyleSheet } from 'react-native'
+import { StyleSheet, View, TouchableOpacity, Image, FlatList } from 'react-native'
+import { Ionicons } from '@expo/vector-icons' 
+import { useRouter } from 'expo-router' // Import router
 
 import ThemedView from '../../components/ThemedView'
 import Spacer from '../../components/Spacer'
 import ThemedText from '../../components/ThemedText'
 
-const Feed = () => {
-  return (
-    <ThemedView style={styles.container}>
-        <ThemedText title={true} style={styles.heading}>
-            Home Page
+const POSTS = [
+    {
+        id: '1',
+        user: 'RomarDelaCruz',
+        type: 'lost',
+        time: '1 min ago',
+        image: 'https://images.playstation.com/is/image/pswstatic/ps4-dualshock-4-listing-thumb-01-en-11sep18?$facebook$',
+        contact: '0912-***-***0',
+        messenger: 'romardelacruz',
+        lastSeen: 'CCL 305'
+    },
+    {
+        id: '2',
+        user: 'JohnwilVerano',
+        type: 'found',
+        time: '1 min ago',
+        image: 'https://m.media-amazon.com/images/I/61N-U7M3LpL._AC_SL1500_.jpg',
+        contact: '0912-***-***0',
+        messenger: 'johnwilverano',
+        lastSeen: 'DIT 1st Floor'
+    }
+]
 
-        </ThemedText>
-    <Spacer />
+const Home = () => {
+    const router = useRouter();
 
-    </ThemedView>
-  )
+    const renderPost = ({ item }) => (
+        <View style={styles.postCard}>
+            <View style={styles.postHeader}>
+                <View style={styles.avatar} />
+                <View style={{ flex: 1, marginLeft: 10 }}>
+                    <ThemedText style={styles.username}>
+                        <ThemedText style={{ fontWeight: 'bold' }}>{item.user}</ThemedText> posted a {item.type} item
+                    </ThemedText>
+                    <ThemedText style={styles.timestamp}>{item.time}</ThemedText>
+                </View>
+                <Ionicons name="ellipsis-horizontal" size={20} color="black" />
+            </View>
+
+            <Image source={{ uri: item.image }} style={[styles.postImage, { borderColor: item.type === 'lost' ? '#FF8C00' : '#32CD32' }]} />
+
+            <View style={styles.postDetails}>
+                <ThemedText style={styles.detailText}>Contact No.: {item.contact}</ThemedText>
+                <ThemedText style={styles.detailText}>Messenger: {item.messenger}</ThemedText>
+                <ThemedText style={styles.detailText}>Last seen: {item.lastSeen}</ThemedText>
+            </View>
+
+            <TouchableOpacity style={[styles.messageButton, { backgroundColor: item.type === 'lost' ? '#FF9130' : '#39D353' }]}>
+                <ThemedText style={styles.messageButtonText}>Message {item.user.split(' ')[0]}</ThemedText>
+            </TouchableOpacity>
+        </View>
+    )
+
+    return (
+        <ThemedView style={styles.container}>
+            {/* Header with Navigation */}
+            <View style={styles.header}>
+                <TouchableOpacity style={styles.iconButton}>
+                    <Ionicons name="search" size={28} color="black" />
+                </TouchableOpacity>
+                
+                <View style={styles.tabContainer}>
+                    <TouchableOpacity 
+                        style={styles.tab} 
+                        onPress={() => router.push('/(lost&found)/lost')}
+                    >
+                        <ThemedText style={styles.tabText}>LOST</ThemedText>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                        style={styles.tab} 
+                        onPress={() => router.push('/(lost&found)/found')}
+                    >
+                        <ThemedText style={styles.tabText}>FOUND</ThemedText>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            <FlatList
+                data={POSTS}
+                keyExtractor={item => item.id}
+                renderItem={renderPost}
+                contentContainerStyle={{ paddingBottom: 20 }}
+                showsVerticalScrollIndicator={false}
+            />
+        </ThemedView>
+    )
 }
 
-export default Feed
+export default Home
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
+        backgroundColor: '#fff'
     },
-    heading: {
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#C4C4C4',
+        paddingTop: 50, 
+        paddingBottom: 15,
+        paddingHorizontal: 15,
+    },
+    iconButton: {
+        width: 40,
+    },
+    tabContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'space-evenly',
+        paddingRight: 40, 
+    },
+    tab: {
+        paddingVertical: 5,
+    },
+    tabText: {
         fontWeight: 'bold',
         fontSize: 18,
-        textAlign: 'center',
     },
-
-
+    postCard: {
+        padding: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee'
+    },
+    postHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 10
+    },
+    avatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#DDD'
+    },
+    username: {
+        fontSize: 13
+    },
+    timestamp: {
+        fontSize: 11,
+        color: '#888'
+    },
+    postImage: {
+        width: '100%',
+        height: 220,
+        borderRadius: 40,
+        borderWidth: 3,
+        marginBottom: 10
+    },
+    postDetails: {
+        paddingHorizontal: 10,
+        marginBottom: 10
+    },
+    detailText: {
+        fontSize: 13,
+        marginBottom: 2
+    },
+    messageButton: {
+        paddingVertical: 12,
+        borderRadius: 25,
+        alignItems: 'center'
+    },
+    messageButtonText: {
+        color: '#fff',
+        fontWeight: 'bold'
+    }
 })
