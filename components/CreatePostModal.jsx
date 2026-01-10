@@ -6,26 +6,31 @@ import {
   View, 
   TextInput,
   Image,
-  Alert 
+  Alert,
+  ScrollView // Added ScrollView in case content gets too long
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import ThemedText from './ThemedText'; 
 
-// --- COLOR CONSTANTS from your image ---
+// --- COLOR CONSTANTS ---
 const COLORS = {
     LOST: '#F28C28', // Orange
     FOUND: '#28A745', // Green
     INACTIVE: '#999',
     BG_LIGHT: '#E5E5E5',
     BG_WHITE: '#FFF',
-    TEXT_DARK: '#333'
+    TEXT_DARK: '#333',
+    BORDER: '#EEE'
 };
 
 const CreatePostModal = ({ visible, onClose }) => {
-  const [postText, setPostText] = useState('');
+  // Form State
+  const [itemCategory, setItemCategory] = useState('');
+  const [contactInfo, setContactInfo] = useState('');
+  const [postText, setPostText] = useState(''); // Description
   const [image, setImage] = useState(null);
-  const [postType, setPostType] = useState('lost'); // 'lost' or 'found'
+  const [postType, setPostType] = useState('lost');
 
   const pickImage = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -41,25 +46,34 @@ const CreatePostModal = ({ visible, onClose }) => {
   };
 
   const handlePost = () => {
-    if (!postText && !image) {
-      Alert.alert("Empty Post", "Please add some text or an image.");
+    // Basic validation
+    if (!itemCategory || !contactInfo || !postText) {
+      Alert.alert("Missing Fields", "Please fill in Item, Contact Info, and Description.");
       return;
     }
+
     const payload = {
         type: postType,
-        text: postText,
+        item: itemCategory,
+        contact: contactInfo,
+        description: postText,
         imageUri: image,
         user: "Jame Hart",
         date: new Date().toISOString()
     };
+
     console.log("Submitting Post:", payload);
+    
+    // Reset Form
+    setItemCategory('');
+    setContactInfo('');
     setPostText('');
     setImage(null);
     setPostType('lost'); 
     onClose(); 
   };
 
-  // Determine the active color based on the state
+  // Determine active color
   const activeColor = postType === 'lost' ? COLORS.LOST : COLORS.FOUND;
 
   return (
@@ -74,7 +88,7 @@ const CreatePostModal = ({ visible, onClose }) => {
           
           {/* Header */}
           <View style={styles.modalHeader}>
-            <ThemedText style={styles.modalTitle}>Create post</ThemedText>
+            <ThemedText style={styles.modalTitle}>Create Post</ThemedText>
             <TouchableOpacity style={styles.closeIcon} onPress={onClose}>
               <Ionicons name="close" size={24} color={COLORS.INACTIVE} />
             </TouchableOpacity>
@@ -108,11 +122,39 @@ const CreatePostModal = ({ visible, onClose }) => {
             </TouchableOpacity>
           </View>
 
-          {/* Input Area */}
-          <View style={styles.inputContainer}>
+          {/* Main Form Container */}
+          <View style={styles.formContainer}>
+            
+            {/* 1. Item Input */}
+            <View style={styles.inputRow}>
+                <Ionicons name="pricetag-outline" size={20} color={COLORS.INACTIVE} style={styles.inputIcon} />
+                <TextInput
+                    style={styles.singleLineInput}
+                    placeholder="Item (e.g. Wallet, Keys, Dog)"
+                    placeholderTextColor={COLORS.INACTIVE}
+                    value={itemCategory}
+                    onChangeText={setItemCategory}
+                />
+            </View>
+            <View style={styles.inputSeparator} />
+
+            {/* 2. Contact Info Input */}
+            <View style={styles.inputRow}>
+                <Ionicons name="call-outline" size={20} color={COLORS.INACTIVE} style={styles.inputIcon} />
+                <TextInput
+                    style={styles.singleLineInput}
+                    placeholder="Contact Info (Phone, Email, Location)"
+                    placeholderTextColor={COLORS.INACTIVE}
+                    value={contactInfo}
+                    onChangeText={setContactInfo}
+                />
+            </View>
+            <View style={styles.inputSeparator} />
+
+            {/* 3. Description Input */}
             <TextInput
-              style={styles.textInput}
-              placeholder={`What item did you ${postType}?`}
+              style={styles.multiLineInput}
+              placeholder={`Describe the ${itemCategory || 'item'} you ${postType}...`}
               placeholderTextColor={COLORS.INACTIVE}
               multiline
               value={postText}
@@ -132,18 +174,19 @@ const CreatePostModal = ({ visible, onClose }) => {
                 </View>
             )}
             
+            {/* Action Icons (Image Picker) */}
             <View style={styles.iconRow}>
                 <TouchableOpacity><Ionicons name="mic-outline" size={24} color={COLORS.INACTIVE} style={styles.icon} /></TouchableOpacity>
                 <TouchableOpacity><Ionicons name="happy-outline" size={24} color={COLORS.INACTIVE} style={styles.icon} /></TouchableOpacity>
                 
-                {/* Image Picker Trigger - Color changes based on selection */}
+                {/* Image Picker Trigger */}
                 <TouchableOpacity onPress={pickImage}>
                     <Ionicons name="image-outline" size={24} color={activeColor} style={styles.icon} />
                 </TouchableOpacity>
             </View>
           </View>
 
-          {/* Post Button - Dynamic Color */}
+          {/* Post Button */}
           <TouchableOpacity 
             style={[styles.postButton, { backgroundColor: activeColor }]} 
             onPress={handlePost}
@@ -211,7 +254,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.TEXT_DARK,
     marginRight: 10,
     borderWidth: 2,
-    // borderColor is now dynamic in the component
   },
   userName: {
     fontWeight: 'bold',
@@ -240,10 +282,10 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   lostActive: {
-    backgroundColor: COLORS.LOST, // Orange
+    backgroundColor: COLORS.LOST,
   },
   foundActive: {
-    backgroundColor: COLORS.FOUND, // Green
+    backgroundColor: COLORS.FOUND,
   },
   toggleText: {
     fontWeight: 'bold',
@@ -255,20 +297,40 @@ const styles = StyleSheet.create({
     color: COLORS.BG_WHITE,
   },
 
-  // --- Input Styles ---
-  inputContainer: {
+  // --- Form Container (The White Box) ---
+  formContainer: {
     backgroundColor: COLORS.BG_WHITE,
     borderRadius: 10,
     padding: 10,
     marginBottom: 15,
-    minHeight: 120,
-    justifyContent: 'space-between',
   },
-  textInput: {
+  
+  // Specific Input Styles
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  singleLineInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#000',
+  },
+  inputSeparator: {
+    height: 1,
+    backgroundColor: COLORS.BORDER,
+    width: '100%',
+  },
+  multiLineInput: {
     fontSize: 16,
     color: '#000',
+    marginTop: 10,
     marginBottom: 10,
-    maxHeight: 100,
+    minHeight: 60, // Give description some initial height
+    textAlignVertical: 'top'
   },
   
   // Image Preview
@@ -290,18 +352,20 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
 
+  // Bottom Icons
   iconRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    borderTopColor: COLORS.BORDER,
     paddingTop: 8,
   },
   icon: {
     marginLeft: 15,
   },
+
+  // Main Action Button
   postButton: {
-    // backgroundColor is now dynamic in the component
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
