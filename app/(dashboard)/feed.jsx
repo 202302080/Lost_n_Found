@@ -56,7 +56,7 @@ const Home = () => {
             <View style={styles.postDetails}>
                 <ThemedText style={styles.detailText}>Contact No.: {item.contact}</ThemedText>
                 <ThemedText style={styles.detailText}>Messenger: {item.messenger}</ThemedText>
-                <ThemedText style={styles.detailText}>Last seen: {item.lastSeen}</ThemedText>
+                <ThemedText style={styles.detailText}>Description: {item.lastSeen}</ThemedText>
             </View>
 
             {/* UPDATED MESSAGE BUTTON: Navigates to Chat and passes user data */}
