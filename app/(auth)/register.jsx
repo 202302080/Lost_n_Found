@@ -103,10 +103,10 @@ const Register = () => {
 
                     {/* Register Form Title */}
                     <ThemedText title={true} style={styles.formTitle}>
-                        Create Account
+                        Create Your Account
                     </ThemedText>
 
-                    <Spacer height={15} />
+                    
 
                     {/* Form Inputs */}
                     <ThemedTextInput

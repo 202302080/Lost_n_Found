@@ -11,7 +11,7 @@ export default function TabLayout() {
     <>
       <Tabs screenOptions={{ tabBarActiveTintColor: '#F28C28' }}>
         <Tabs.Screen
-          name="index"
+          name="/dashboard/feed"
           options={{
             title: 'Home',
             tabBarIcon: ({ color }) => <Ionicons name="home" size={28} color={color} />,

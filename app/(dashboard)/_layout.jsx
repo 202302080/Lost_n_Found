@@ -23,8 +23,8 @@ const DashboardLayout = () => {
                 tabBarStyle: { 
                     backgroundColor: theme.navBackground, 
                     borderTopColor: theme.navBorder,
-                    paddingTop: 10,
-                    height: 90
+                    paddingTop: 5,
+                    height: 60
                 },
                 tabBarActiveTintColor: theme.iconColorFocused,
                 tabBarInactiveTintColor: theme.iconColor
@@ -41,20 +41,6 @@ const DashboardLayout = () => {
                             color= {focused ? theme.iconColorFocused : theme.iconColor}
                         />
                     )
-                }}
-            />
-
-            <Tabs.Screen 
-                name="messages" 
-                options={{ 
-                    title: 'Messages', 
-                    tabBarIcon: ({ focused }) => (
-                        <Ionicons
-                            size={24}
-                            name={focused ? 'chatbubbles' : 'chatbubbles-outline'}
-                            color={focused ? theme.iconColorFocused : theme.iconColor}
-                        />
-                    ) 
                 }}
             />
 
@@ -77,20 +63,6 @@ const DashboardLayout = () => {
                             onPress={() => setCreateModalVisible(true)}
                         />
                     )
-                }}
-            />
-
-            <Tabs.Screen 
-                name="notifications" 
-                options={{ 
-                    title: 'Notifications', 
-                    tabBarIcon: ({ focused }) => (
-                        <Ionicons
-                            size={24}
-                            name={focused ? 'notifications' : 'notifications-outline'}
-                            color={focused ? theme.iconColorFocused : theme.iconColor}
-                        />
-                    ) 
                 }}
             />
 

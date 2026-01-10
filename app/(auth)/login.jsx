@@ -1,5 +1,7 @@
 import { Keyboard, StyleSheet, Text, Image, TouchableWithoutFeedback, ScrollView } from 'react-native'
-import { Link } from 'expo-router'
+import { useRouter, Link } from 'expo-router'
+import { useState } from 'react'
+import { Alert } from 'react-native'
 
 import Logo from '../../assets/img/logo.png'
 import ThemedView from '../../components/ThemedView'
@@ -7,12 +9,12 @@ import Spacer from '../../components/Spacer'
 import ThemedText from '../../components/ThemedText'
 import ThemedButton from '../../components/ThemedButton'
 import ThemedTextInput from '../../components/ThemedTextInput'
-import { useState } from 'react'
-import { API_URL } from '../../lib/api'
-import { Alert } from 'react-native'
+import { useUser } from '../../hooks/useUser'
 
 
 const Login = () => {
+    const router = useRouter()
+    const { login } = useUser()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [loading, setLoading] = useState(false)
@@ -27,21 +29,15 @@ const Login = () => {
                 return
             }
 
-            const res = await fetch(`${API_URL}/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password }),
-            })
-
-            const data = await res.json()
-
-            if (!res.ok) {
-                Alert.alert('Login Failed', data.message)
-            } else {
-                Alert.alert('Welcome', `Hello ${data.user.firstName}!`)
+            const success = await login(email, password)
+            
+            if (success) {
+                Alert.alert('Welcome', 'Login successful!')
+                // Redirect to feed after successful login
+                router.replace('/(dashboard)/feed')
             }
         } catch (err) {
-            Alert.alert('Error', 'Server not reachable')
+            Alert.alert('Error', 'An unexpected error occurred')
         } finally {
             setLoading(false)
         }

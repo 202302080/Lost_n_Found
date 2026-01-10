@@ -7,11 +7,16 @@ import {
   TextInput,
   Image,
   Alert,
-  ScrollView // Added ScrollView in case content gets too long
+  ScrollView,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import ThemedText from './ThemedText'; 
+import * as FileSystem from 'expo-file-system/legacy';
+import axios from 'axios';
+import ThemedText from './ThemedText';
+import { API_URL } from '../lib/api';
+import { useUser } from '../hooks/useUser'; 
 
 // --- COLOR CONSTANTS ---
 const COLORS = {
@@ -24,53 +29,112 @@ const COLORS = {
     BORDER: '#EEE'
 };
 
-const CreatePostModal = ({ visible, onClose }) => {
+const CreatePostModal = ({ visible, onClose, onPostCreated }) => {
+  const { user } = useUser();
   // Form State
   const [itemCategory, setItemCategory] = useState('');
-  const [contactInfo, setContactInfo] = useState('');
-  const [postText, setPostText] = useState(''); // Description
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [messengerUsername, setMessengerUsername] = useState('');
+  const [location, setLocation] = useState(''); // Location where item was last seen
+  const [description, setDescription] = useState(''); // Description of the item
   const [image, setImage] = useState(null);
   const [postType, setPostType] = useState('lost');
+  const [loading, setLoading] = useState(false);
 
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.3, // Lower quality for smaller file size
+      });
 
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
+      if (result && !result.canceled && result.assets && result.assets.length > 0) {
+        const imageUri = result.assets[0]?.uri;
+        if (imageUri) {
+          setImage(imageUri);
+        }
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert('Error', 'Failed to pick image. Please try again.');
     }
   };
 
-  const handlePost = () => {
+  const handlePost = async () => {
     // Basic validation
-    if (!itemCategory || !contactInfo || !postText) {
-      Alert.alert("Missing Fields", "Please fill in Item, Contact Info, and Description.");
+    if (!itemCategory || !phoneNumber || !messengerUsername || !location || !description) {
+      Alert.alert("Missing Fields", "Please fill in Item, Phone Number, Messenger, Location, and Description.");
       return;
     }
 
-    const payload = {
+    if (!user || !user.id) {
+      Alert.alert("Error", "User information not available. Please log in.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Create full name from user's firstName and lastName
+      const userName = `${user.firstName} ${user.lastName}`;
+
+      let imageUrl = null;
+      
+      // Convert image to base64 if selected
+      if (image) {
+        try {
+          const base64 = await FileSystem.readAsStringAsync(image, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          imageUrl = `data:image/jpeg;base64,${base64}`;
+        } catch (error) {
+          console.error('Error converting image to base64:', error);
+          Alert.alert('Error', 'Failed to process image');
+          setLoading(false);
+          return;
+        }
+      }
+
+      const payload = {
         type: postType,
         item: itemCategory,
-        contact: contactInfo,
-        description: postText,
-        imageUri: image,
-        user: "Jame Hart",
-        date: new Date().toISOString()
-    };
+        contact: phoneNumber,
+        messenger: messengerUsername,
+        location: location,
+        description: description,
+        imageUrl: imageUrl,
+        user: userName,
+        userId: user.id,
+      };
 
-    console.log("Submitting Post:", payload);
-    
-    // Reset Form
-    setItemCategory('');
-    setContactInfo('');
-    setPostText('');
-    setImage(null);
-    setPostType('lost'); 
-    onClose(); 
+      const response = await axios.post(`${API_URL}/posts/create`, payload);
+
+      if (response.status === 201) {
+        Alert.alert("Success", "Post created successfully!");
+        
+        // Notify parent component of new post
+        if (onPostCreated) {
+          onPostCreated(response.data.post);
+        }
+
+        // Reset Form
+        setItemCategory('');
+        setPhoneNumber('');
+        setMessengerUsername('');
+        setLocation('');
+        setDescription('');
+        setImage(null);
+        setPostType('lost');
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error creating post:", error);
+      Alert.alert("Error", error.response?.data?.message || "Failed to create post");
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Determine active color
@@ -100,7 +164,9 @@ const CreatePostModal = ({ visible, onClose }) => {
           <View style={styles.userInfo}>
             <View style={[styles.avatarPlaceholder, { borderColor: activeColor }]} /> 
             <View>
-              <ThemedText style={styles.userName}>Jame Hart</ThemedText>
+              <ThemedText style={styles.userName}>
+                {user ? `${user.firstName} ${user.lastName}` : 'User'}
+              </ThemedText>
               <ThemedText style={styles.userRole}>Public</ThemedText>
             </View>
           </View>
@@ -138,27 +204,54 @@ const CreatePostModal = ({ visible, onClose }) => {
             </View>
             <View style={styles.inputSeparator} />
 
-            {/* 2. Contact Info Input */}
+            {/* 2. Phone Number Input */}
             <View style={styles.inputRow}>
                 <Ionicons name="call-outline" size={20} color={COLORS.INACTIVE} style={styles.inputIcon} />
                 <TextInput
                     style={styles.singleLineInput}
-                    placeholder="Contact Info (Phone, Email, Location)"
+                    placeholder="Phone Number"
                     placeholderTextColor={COLORS.INACTIVE}
-                    value={contactInfo}
-                    onChangeText={setContactInfo}
+                    keyboardType="phone-pad"
+                    value={phoneNumber}
+                    onChangeText={setPhoneNumber}
                 />
             </View>
             <View style={styles.inputSeparator} />
 
-            {/* 3. Description Input */}
+            {/* 3. Messenger Username Input */}
+            <View style={styles.inputRow}>
+                <Ionicons name="chatbubble-outline" size={20} color={COLORS.INACTIVE} style={styles.inputIcon} />
+                <TextInput
+                    style={styles.singleLineInput}
+                    placeholder="Messenger"
+                    placeholderTextColor={COLORS.INACTIVE}
+                    value={messengerUsername}
+                    onChangeText={setMessengerUsername}
+                />
+            </View>
+            <View style={styles.inputSeparator} />
+
+            {/* 4. Location Input */}
+            <View style={styles.inputRow}>
+                <Ionicons name="location-outline" size={20} color={COLORS.INACTIVE} style={styles.inputIcon} />
+                <TextInput
+                    style={styles.singleLineInput}
+                    placeholder="Location (where it was last seen)"
+                    placeholderTextColor={COLORS.INACTIVE}
+                    value={location}
+                    onChangeText={setLocation}
+                />
+            </View>
+            <View style={styles.inputSeparator} />
+
+            {/* 5. Description Input */}
             <TextInput
               style={styles.multiLineInput}
               placeholder={`Describe the ${itemCategory || 'item'} you ${postType}...`}
               placeholderTextColor={COLORS.INACTIVE}
               multiline
-              value={postText}
-              onChangeText={setPostText}
+              value={description}
+              onChangeText={setDescription}
             />
 
             {/* Image Preview */}
@@ -190,8 +283,13 @@ const CreatePostModal = ({ visible, onClose }) => {
           <TouchableOpacity 
             style={[styles.postButton, { backgroundColor: activeColor }]} 
             onPress={handlePost}
+            disabled={loading}
           >
-            <ThemedText style={styles.postButtonText}>POST</ThemedText>
+            {loading ? (
+              <ActivityIndicator size="small" color={COLORS.BG_WHITE} />
+            ) : (
+              <ThemedText style={styles.postButtonText}>POST</ThemedText>
+            )}
           </TouchableOpacity>
 
         </View>

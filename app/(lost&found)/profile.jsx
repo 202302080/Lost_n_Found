@@ -4,11 +4,11 @@ import ThemedView from '../../components/ThemedView'
 import Spacer from '../../components/Spacer'
 import ThemedText from '../../components/ThemedText'
 
-const Contacts = () => {
+const Profile = () => {
   return (
     <ThemedView style={styles.container}>
         <ThemedText title={true} style={styles.heading}>
-            Notification Page
+            Profile Page
 
         </ThemedText>
     <Spacer />
@@ -17,7 +17,7 @@ const Contacts = () => {
   )
 }
 
-export default Contacts
+export default Profile
 
 const styles = StyleSheet.create({
     container: {
