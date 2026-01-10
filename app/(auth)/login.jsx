@@ -1,6 +1,5 @@
-import { Keyboard, StyleSheet, Pressable, Text, Image, TouchableWithoutFeedback } from 'react-native'
+import { Keyboard, StyleSheet, Text, Image, TouchableWithoutFeedback, ScrollView } from 'react-native'
 import { Link } from 'expo-router'
-import { colors } from '../../constants/colors'  
 
 import Logo from '../../assets/img/logo.png'
 import ThemedView from '../../components/ThemedView'
@@ -9,7 +8,6 @@ import ThemedText from '../../components/ThemedText'
 import ThemedButton from '../../components/ThemedButton'
 import ThemedTextInput from '../../components/ThemedTextInput'
 import { useState } from 'react'
-import { useUser } from '../../hooks/useUser'
 import { API_URL } from '../../lib/api'
 import { Alert } from 'react-native'
 
@@ -17,103 +15,174 @@ import { Alert } from 'react-native'
 const Login = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-
+    const [loading, setLoading] = useState(false)
 
     const handleLogin = async () => {
         try {
+            setLoading(true)
+            
+            if (!email || !password) {
+                Alert.alert('Error', 'Please fill in all fields')
+                setLoading(false)
+                return
+            }
+
             const res = await fetch(`${API_URL}/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
             })
 
             const data = await res.json()
 
             if (!res.ok) {
-            Alert.alert('Login Failed', data.message)
+                Alert.alert('Login Failed', data.message)
             } else {
-            // save token if needed
-            Alert.alert('Welcome', data.user.email)
+                Alert.alert('Welcome', `Hello ${data.user.firstName}!`)
             }
         } catch (err) {
             Alert.alert('Error', 'Server not reachable')
+        } finally {
+            setLoading(false)
         }
-        }
+    }
 
 
 
-  return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-    <ThemedView style={[styles.container]}>
+    return (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <ThemedView style={styles.container}>
+                    {/* Logo Section */}
+                    <Image source={Logo} style={styles.logo} />
 
-        <Spacer />
-        <ThemedText title={true} style={styles.title}>
-            LostnFound</ThemedText>
+                    {/* Title Section */}
+                    <ThemedText title={true} style={styles.mainTitle}>
+                        Found IT!
+                    </ThemedText>
+                    
+                    <ThemedText style={styles.subtitle}>
+                        Find what's lost, return what's found
+                    </ThemedText>
 
-        <Spacer height={100} />
-
-            <ThemedText title={true} style={styles.title}>
-            Create an account</ThemedText>
-
-        <Spacer height={10} />
-
-            <ThemedTextInput 
-                style={{ width: '80%', marginBottom: 20}}
-                placeholder="Email"
-                keyboardType="email-address"
-                onChangeText={setEmail}
-                value={email} 
-
-                />
-
-            <ThemedTextInput
-            style={{ width: '80%', marginBottom: 20}}
-                placeholder="Password"
-                onChangeText={setPassword}
-                value={password}
-                secureTextEntry
-
-                />
-
-            <ThemedButton onPress={handleLogin}>
-            <Text style= {{ color: '#f2f2f2'}}>Login</Text>
-        </ThemedButton>
-
-            <Spacer height={100} />
-
-            <ThemedText style={{ textAlign: 'center'}}>
-                Don't have an account yet? <Link href='/register'>Sign up </Link>
-            </ThemedText>
+                    <Spacer height={30} />
 
 
-        </ThemedView>
+                    {/* Form Inputs */}
+                    <ThemedTextInput
+                        style={styles.input}
+                        placeholder="Email Address"
+                        placeholderTextColor="#999"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        onChangeText={setEmail}
+                        value={email}
+                    />
+
+                    <ThemedTextInput
+                        style={styles.input}
+                        placeholder="Password"
+                        placeholderTextColor="#999"
+                        onChangeText={setPassword}
+                        value={password}
+                        secureTextEntry
+                    />
+
+                    <Spacer height={10} />
+
+                    {/* Login Button */}
+                    <ThemedButton 
+                        style={styles.button}
+                        onPress={handleLogin}
+                        disabled={loading}
+                    >
+                        <Text style={styles.buttonText}>
+                            {loading ? 'Logging in...' : 'Login'}
+                        </Text>
+                    </ThemedButton>
+
+                    <Spacer height={20} />
+
+                    {/* Sign Up Link */}
+                    <ThemedText style={styles.signupText}>
+                        Don't have an account?{' '}
+                        <Link href='/register' style={styles.signupLink}>
+                            Sign up
+                        </Link>
+                    </ThemedText>
+
+                </ThemedView>
+            </ScrollView>
         </TouchableWithoutFeedback>
-  )
+    )
 }
 
 export default Login
 
 const styles = StyleSheet.create({
+    scrollContainer: {
+        flexGrow: 1,
+        justifyContent: 'center',
+        paddingVertical: 20,
+    },
     container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20,
     },
-    title: {
+    logo: {
+        width: 120,
+        height: 120,
+        marginBottom: 25,
+        resizeMode: 'contain',
+    },
+    mainTitle: {
+        fontSize: 32,
+        fontWeight: 'bold',
         textAlign: 'center',
-        fontSize: 18,
-        marginBottom: 1,
+        marginBottom: 8,
+        letterSpacing: 0.5,
     },
-    btn: {
-        backgroundColor: colors.primary,
-        padding: 15,
-        borderRadius: 5,
+    subtitle: {
+        fontSize: 14,
+        textAlign: 'center',
+        marginBottom: 35,
+        opacity: 0.7,
+        fontStyle: 'italic',
     },
-    pressed: {
-        opacity: 0.8
-    
+    formTitle: {
+        fontSize: 22,
+        fontWeight: '600',
+        textAlign: 'center',
+        marginBottom: 25,
+        letterSpacing: 0.3,
     },
-    img: {
-
-    }
+    input: {
+        width: '100%',
+        marginBottom: 16,
+        borderRadius: 10,
+        paddingVertical: 12,
+    },
+    button: {
+        width: '100%',
+        marginTop: 8,
+        borderRadius: 10,
+    },
+    buttonText: {
+        color: '#f2f2f2',
+        fontSize: 16,
+        fontWeight: '700',
+        letterSpacing: 0.5,
+    },
+    signupText: {
+        textAlign: 'center',
+        fontSize: 14,
+        marginTop: 25,
+    },
+    signupLink: {
+        color: '#008000',
+        fontWeight: '700',
+        fontSize: 14,
+    },
 })
