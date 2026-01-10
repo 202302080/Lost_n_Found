@@ -10,20 +10,37 @@ import ThemedButton from '../../components/ThemedButton'
 import ThemedTextInput from '../../components/ThemedTextInput'
 import { useState } from 'react'
 import { useUser } from '../../hooks/useUser'
-
+import { API_URL } from '../../lib/api'
+import { Alert } from 'react-native'
 
 
 const Login = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
 
-    const { user } = useUser()
+
+    const handleLogin = async () => {
+        try {
+            const res = await fetch(`${API_URL}/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+            })
+
+            const data = await res.json()
+
+            if (!res.ok) {
+            Alert.alert('Login Failed', data.message)
+            } else {
+            // save token if needed
+            Alert.alert('Welcome', data.user.email)
+            }
+        } catch (err) {
+            Alert.alert('Error', 'Server not reachable')
+        }
+        }
 
 
-    const handleSubmit = () => {
-        console.log('current user:', user)
-        console.log('Login pressed', email, password)
-    }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -58,7 +75,7 @@ const Login = () => {
 
                 />
 
-            <ThemedButton onPress={handleSubmit}>
+            <ThemedButton onPress={handleLogin}>
             <Text style= {{ color: '#f2f2f2'}}>Login</Text>
         </ThemedButton>
 
