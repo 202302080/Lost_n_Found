@@ -7,14 +7,34 @@ import ThemedText from '../../components/ThemedText'
 import ThemedButton from '../../components/ThemedButton'
 import ThemedTextInput from '../../components/ThemedTextInput'
 import { useState } from 'react'
+import { API_URL } from '../../lib/api'
+import { Alert } from 'react-native'
+
+
 
 const Register = () => {
      const [email, setEmail] = useState('')
         const [password, setPassword] = useState('')
 
-    const handleSubmit = () => {
-        console.log('Registered form pressed', email, password)
-    }
+    const handleSubmit = async () => {
+         try {
+            const res = await fetch(`${API_URL}/auth/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
+            })
+
+            const data = await res.json()
+
+            if (!res.ok) {
+            Alert.alert('Error', data.message)
+            } else {
+            Alert.alert('Success', 'Account created')
+            }
+        } catch (err) {
+            Alert.alert('Error', 'Server not reachable')
+        }
+        }
 
 
   return (
