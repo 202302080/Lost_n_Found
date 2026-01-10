@@ -5,9 +5,9 @@ const FoundItem = require('../models/FoundItem')
 // Create a new post (lost or found item)
 router.post('/create', async (req, res) => {
   try {
-    const { type, item, contact, messenger, description, imageUrl, user, userId, avatar } = req.body
+    const { type, item, contact, messenger, location, description, imageUrl, user, userId, avatar } = req.body
 
-    if (!type || !item || !contact || !messenger || !description || !user || !userId) {
+    if (!type || !item || !contact || !messenger || !location || !description || !user || !userId) {
       return res.status(400).json({ message: 'All required fields must be provided' })
     }
 
@@ -19,6 +19,7 @@ router.post('/create', async (req, res) => {
       item,
       contact,
       messenger,
+      location,
       description,
       imageUrl: imageUrl || null,
       user,

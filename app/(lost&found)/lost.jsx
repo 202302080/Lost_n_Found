@@ -17,7 +17,8 @@ const LOST_DATA = [
         image: 'https://images.playstation.com/is/image/pswstatic/ps4-dualshock-4-listing-thumb-01-en-11sep18?$facebook$',
         contact: '0912-***-***0',
         messenger: 'romardelacruz',
-        lastSeen: 'CCL 305'
+        location: 'CCL 305',
+        description: 'Black PS4 controller, last seen on gaming area'
     }
 ]
 
@@ -42,7 +43,8 @@ const LostScreen = () => {
                     ...post,
                     id: post._id,
                     time: formatTime(post.createdAt),
-                    lastSeen: post.description,
+                    location: post.location || 'Not specified',
+                    description: post.description || 'No description',
                     avatar: post.avatar || 'https://randomuser.me/api/portraits/men/1.jpg',
                     image: post.imageUrl || 'https://via.placeholder.com/300?text=No+Image'
                 }));
@@ -109,8 +111,16 @@ const LostScreen = () => {
                     <ThemedText style={styles.detailText}>{item.contact}</ThemedText>
                 </View>
                 <View style={styles.detailRow}>
+                    <Ionicons name="chatbubble" size={18} color="#666" style={styles.detailIcon} />
+                    <ThemedText style={styles.detailText}>{item.messenger}</ThemedText>
+                </View>
+                <View style={styles.detailRow}>
                     <Ionicons name="location" size={18} color="#666" style={styles.detailIcon} />
-                    <ThemedText style={styles.detailText}>{item.lastSeen}</ThemedText>
+                    <ThemedText style={styles.detailText}>{item.location}</ThemedText>
+                </View>
+                <View style={styles.detailRow}>
+                    <Ionicons name="document-text" size={18} color="#666" style={styles.detailIcon} />
+                    <ThemedText style={styles.detailText}>{item.description}</ThemedText>
                 </View>
             </View>
 

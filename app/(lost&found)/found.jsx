@@ -17,7 +17,8 @@ const FOUND_DATA = [
         image: 'https://m.media-amazon.com/images/I/61N-U7M3LpL._AC_SL1500_.jpg',
         contact: '0912-***-***0',
         messenger: 'johnwilverano',
-        lastSeen: 'DIT 1st Floor'
+        location: 'DIT 1st Floor',
+        description: 'Red and black school bag, contains books and notebooks'
     }
 ];
 
@@ -42,7 +43,8 @@ const FoundScreen = () => {
                     ...post,
                     id: post._id,
                     time: formatTime(post.createdAt),
-                    lastSeen: post.description,
+                    location: post.location || 'Not specified',
+                    description: post.description || 'No description',
                     avatar: post.avatar || 'https://randomuser.me/api/portraits/men/1.jpg',
                     image: post.imageUrl || 'https://via.placeholder.com/300?text=No+Image'
                 }));
@@ -114,7 +116,11 @@ const FoundScreen = () => {
                 </View>
                 <View style={styles.detailRow}>
                     <Ionicons name="location" size={18} color="#666" style={styles.detailIcon} />
-                    <ThemedText style={styles.detailText}>{item.lastSeen}</ThemedText>
+                    <ThemedText style={styles.detailText}>{item.location}</ThemedText>
+                </View>
+                <View style={styles.detailRow}>
+                    <Ionicons name="document-text" size={18} color="#666" style={styles.detailIcon} />
+                    <ThemedText style={styles.detailText}>{item.description}</ThemedText>
                 </View>
             </View>
 
