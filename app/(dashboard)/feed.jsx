@@ -50,6 +50,7 @@ const Home = () => {
     const fetchPosts = async () => {
         try {
             setLoading(true);
+            
             const response = await axios.get(`${API_URL}/posts/all`);
             
             if (response.data.posts) {
