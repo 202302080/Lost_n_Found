@@ -32,7 +32,8 @@ const LostScreen = () => {
                     time: formatTime(post.createdAt),
                     location: post.location || 'Not specified',
                     description: post.description || 'No description',
-                    avatar: post.avatar || 'https://randomuser.me/api/portraits/men/1.jpg',
+                    // --- CHANGED LINE: Randomize gender (men/women) and ID (0-90) ---
+                    avatar: post.avatar || `https://randomuser.me/api/portraits/${Math.random() > 0.5 ? 'men' : 'women'}/${Math.floor(Math.random() * 90)}.jpg`,
                     image: post.imageUrl || null
                 }));
                 setPosts(formattedPosts);

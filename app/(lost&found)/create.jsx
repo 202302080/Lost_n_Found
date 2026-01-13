@@ -1,6 +1,13 @@
-import { View } from 'react-native';
+import { useEffect } from 'react'
+import { View } from 'react-native'
+import { useRouter } from 'expo-router'
 
+export default function Create() {
+  const router = useRouter()
 
-export default function CreatePlaceholder() {
-  return <View style={{ flex: 1, backgroundColor: 'white' }} />;
+  useEffect(() => {
+    router.replace('/(dashboard)/feed?openCreate=true')
+  }, [])
+
+  return <View />
 }
