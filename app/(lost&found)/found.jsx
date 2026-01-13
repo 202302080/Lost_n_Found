@@ -8,8 +8,10 @@ import ThemedView from '../../components/ThemedView';
 import ThemedText from '../../components/ThemedText';
 import PostOptionsMenu from '../../components/PostOptionsMenu';
 import { API_URL } from '../../lib/api';
+import { useUser } from '../../hooks/useUser';
 
 const FoundScreen = () => {
+    const { user } = useUser();
     const router = useRouter();
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -23,7 +25,7 @@ const FoundScreen = () => {
             const response = await axios.get(`${API_URL}/posts/type/found`);
             
             if (response.data.posts) {
-                // Format posts to include calculated timestamps
+                
                 const formattedPosts = response.data.posts.map(post => ({
                     ...post,
                     id: post._id,
@@ -31,7 +33,7 @@ const FoundScreen = () => {
                     location: post.location || 'Not specified',
                     description: post.description || 'No description',
                     avatar: post.avatar || 'https://randomuser.me/api/portraits/men/1.jpg',
-                    image: post.imageUrl || 'https://via.placeholder.com/300?text=No+Image'
+                    image: post.imageUrl || null
                 }));
                 setPosts(formattedPosts);
             }
@@ -51,7 +53,7 @@ const FoundScreen = () => {
         const diffDays = Math.floor(diffMs / 86400000);
 
         if (diffMins < 1) return 'just now';
-        if (diffMins < 60) return `${diffMins} min ago`;
+        if (diffMins < 60) return `${diffMins} mins ago`;
         if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
         if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
         
@@ -85,10 +87,17 @@ const FoundScreen = () => {
                     </ThemedText>
                     <ThemedText style={styles.timestamp}>{item.time}</ThemedText>
                 </View>
-                <PostOptionsMenu postId={item.id} onPostDeleted={fetchFoundPosts} />
+                <PostOptionsMenu 
+                    postId={item.id} 
+                    postUserId={item.userId}
+                    currentUserId={user?.id}
+                    onPostDeleted={fetchFoundPosts} 
+                />
             </View>
 
-            <Image source={{ uri: item.image }} style={styles.postImage} />
+            {item.image && (
+                <Image source={{ uri: item.image }} style={styles.postImage} />
+            )}
 
             <View style={styles.postDetails}>
                 <View style={styles.detailRow}>

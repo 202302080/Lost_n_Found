@@ -8,9 +8,11 @@ import ThemedView from '../../components/ThemedView'
 import ThemedText from '../../components/ThemedText'
 import PostOptionsMenu from '../../components/PostOptionsMenu'
 import { API_URL } from '../../lib/api'
+import { useUser } from '../../hooks/useUser'
 
 const LostScreen = () => {
     const router = useRouter();
+    const { user } = useUser();
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -29,7 +31,7 @@ const LostScreen = () => {
                     location: post.location || 'Not specified',
                     description: post.description || 'No description',
                     avatar: post.avatar || 'https://randomuser.me/api/portraits/men/1.jpg',
-                    image: post.imageUrl || 'https://via.placeholder.com/300?text=No+Image'
+                    image: post.imageUrl || null
                 }));
                 setPosts(formattedPosts);
             }
@@ -101,11 +103,15 @@ const LostScreen = () => {
                 </View>
                 <PostOptionsMenu 
                     postId={item.id} 
+                    postUserId={item.userId}
+                    currentUserId={user?.id}
                     onPostDeleted={fetchLostPosts}
                     onMarkFound={() => handleMarkAsFound(item.id)}
                 />
             </View>
-            <Image source={{ uri: item.image }} style={styles.postImage} />
+            {item.image && (
+                <Image source={{ uri: item.image }} style={styles.postImage} />
+            )}
             <View style={styles.postDetails}>
                 <View style={styles.detailRow}>
                     <Ionicons name="call" size={18} color="#666" style={styles.detailIcon} />

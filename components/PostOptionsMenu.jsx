@@ -6,10 +6,27 @@ import ThemedText from './ThemedText';
 import { API_URL } from '../lib/api';
 
 // Added onMarkFound to props
-const PostOptionsMenu = ({ postId, onPostDeleted, onMarkFound }) => {
+const PostOptionsMenu = ({ postId, postUserId, currentUserId, onPostDeleted, onMarkFound }) => {
     const [menuVisible, setMenuVisible] = useState(false);
     const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
     const buttonRef = useRef(null);
+    
+    // Extract userId - handle both object (populated) and string formats
+    // When populated, userId is an object like { _id: '...', firstName: '...', ... }
+    // We need to extract the _id and convert to string
+    let normalizedPostUserId = null;
+    if (postUserId) {
+        if (typeof postUserId === 'object' && postUserId._id) {
+            normalizedPostUserId = String(postUserId._id);
+        } else {
+            normalizedPostUserId = String(postUserId);
+        }
+    }
+    
+    const normalizedCurrentUserId = currentUserId ? String(currentUserId) : null;
+    
+    // Check if current user is the post owner
+    const isOwner = normalizedPostUserId && normalizedCurrentUserId && normalizedPostUserId === normalizedCurrentUserId;
 
     const handleDeletePost = async () => {
         Alert.alert(
@@ -95,17 +112,20 @@ const PostOptionsMenu = ({ postId, onPostDeleted, onMarkFound }) => {
                                     <ThemedText style={styles.menuText}>Mark as Found</ThemedText>
                                 </TouchableOpacity>
 
-                                <View style={styles.divider} />
+                                {isOwner && <View style={styles.divider} />}
                             </>
                         )}
 
-                        <TouchableOpacity 
-                            style={styles.menuItem}
-                            onPress={handleDeletePost}
-                        >
-                            <Ionicons name="trash-outline" size={20} color="#FF4444" style={styles.menuIcon} />
-                            <ThemedText style={[styles.menuText, { color: '#FF4444' }]}>Delete Post</ThemedText>
-                        </TouchableOpacity>
+                        {/* Only show Delete option if current user is the post owner */}
+                        {isOwner && (
+                            <TouchableOpacity 
+                                style={styles.menuItem}
+                                onPress={handleDeletePost}
+                            >
+                                <Ionicons name="trash-outline" size={20} color="#FF4444" style={styles.menuIcon} />
+                                <ThemedText style={[styles.menuText, { color: '#FF4444' }]}>Delete Post</ThemedText>
+                            </TouchableOpacity>
+                        )}
                     </View>
                 </TouchableOpacity>
             </Modal>
