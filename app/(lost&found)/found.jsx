@@ -9,23 +9,9 @@ import ThemedText from '../../components/ThemedText';
 import PostOptionsMenu from '../../components/PostOptionsMenu';
 import { API_URL } from '../../lib/api';
 
-const FOUND_DATA = [
-    {
-        id: '2',
-        user: 'JohnwilVerano',
-        time: '1 min ago',
-        image: 'https://m.media-amazon.com/images/I/61N-U7M3LpL._AC_SL1500_.jpg',
-        contact: '0912-***-***0',
-        messenger: 'johnwilverano',
-        location: 'DIT 1st Floor',
-        description: 'Red and black school bag, contains books and notebooks'
-    }
-];
 
 const FoundScreen = () => {
     const router = useRouter();
-    const [isSearching, setIsSearching] = useState(false);
-    const [searchText, setSearchText] = useState('');
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -187,24 +173,9 @@ const FoundScreen = () => {
                 </View>
             </Modal>
             <View style={styles.header}>
-                {/* UPPER LEFT: SEARCH BUTTON */}
-                <View style={styles.sideContainer}>
-                    <TouchableOpacity onPress={() => setIsSearching(!isSearching)}>
-                        <Ionicons name={isSearching ? "close" : "search"} size={26} color="black" />
-                    </TouchableOpacity>
-                </View>
-
                 {/* CENTERED TABS OR SEARCH INPUT */}
                 <View style={styles.centerContainer}>
-                    {isSearching ? (
-                        <TextInput
-                            style={styles.searchInput}
-                            placeholder="Search items..."
-                            value={searchText}
-                            onChangeText={setSearchText}
-                            autoFocus
-                        />
-                    ) : (
+                    
                         <View style={styles.tabContainer}>
                             <TouchableOpacity onPress={() => router.replace('/(lost&found)/lost')}>
                                 <ThemedText style={styles.tabText}>LOST</ThemedText>
@@ -213,7 +184,7 @@ const FoundScreen = () => {
                                 <ThemedText style={[styles.tabText, styles.activeFoundText]}>FOUND</ThemedText>
                             </TouchableOpacity>
                         </View>
-                    )}
+                    
                 </View>
 
                 {/* UPPER RIGHT: EMPTY SPACE FOR ALIGNMENT */}

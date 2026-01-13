@@ -63,8 +63,13 @@ export function UserProvider({ children }) {
     setToken(null)
   }
 
+  // update user object
+  function updateUser(changes) {
+    setUser(prev => ({ ...(prev || {}), ...changes }))
+  }
+
   return (
-    <UserContext.Provider value={{ user, token, login, register, logout }}>
+    <UserContext.Provider value={{ user, token, login, register, logout, updateUser }}>
       {children}
     </UserContext.Provider>
   )

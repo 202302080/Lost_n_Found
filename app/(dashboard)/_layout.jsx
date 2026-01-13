@@ -56,12 +56,17 @@ const DashboardLayout = () => {
                             color={focused ? theme.iconColorFocused : theme.iconColor}
                         />
                     ),
-                    // This overrides the navigation and opens the modal instead
+                    // This overrides the navigation and opens the modal instead.
+                    // Avoid spreading navigator props here so the tab won't be
+                    // treated as 'selected' when opening the modal.
                     tabBarButton: (props) => (
                         <TouchableOpacity
-                            {...props}
+                            style={props?.style}
+                            accessibilityLabel={props?.accessibilityLabel}
                             onPress={() => setCreateModalVisible(true)}
-                        />
+                        >
+                            {props?.children}
+                        </TouchableOpacity>
                     )
                 }}
             />

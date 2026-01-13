@@ -1,5 +1,21 @@
 const router = require('express').Router()
 const User = require('../models/User')
+const multer = require('multer')
+const path = require('path')
+
+// setup multer storage
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, '..', 'uploads'))
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname)
+    const name = `${Date.now()}-${Math.round(Math.random()*1E9)}${ext}`
+    cb(null, name)
+  }
+})
+
+const upload = multer({ storage })
 
 router.post('/register', async (req, res) => {
   try {
@@ -84,8 +100,47 @@ router.post('/login', async (req, res) => {
   }
 })
 
+
 router.post('/logout', (req, res) => {
   res.json({ message: 'Logged out successfully' })
+})
+
+// Profile picture upload route
+router.post('/profile-picture', upload.single('picture'), async (req, res) => {
+  try {
+    const userId = req.body.userId
+    if (!userId) return res.status(400).json({ message: 'userId required' })
+    if (!req.file) return res.status(400).json({ message: 'No file uploaded' })
+
+    const fileUrl = `${process.env.SERVER_URL ?? 'http://localhost:5000'}/uploads/${req.file.filename}`
+
+    const user = await User.findByIdAndUpdate(userId, { profilePic: fileUrl }, { new: true })
+    if (!user) return res.status(404).json({ message: 'User not found' })
+
+    res.json({ message: 'Profile picture updated', user: { id: user._id, profilePic: user.profilePic } })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
+})
+
+// Update user's first and/or last name
+router.put('/update-name', async (req, res) => {
+  try {
+    const { userId, firstName, lastName } = req.body
+    if (!userId) return res.status(400).json({ message: 'userId required' })
+    if (!firstName && !lastName) return res.status(400).json({ message: 'firstName or lastName required' })
+
+    const update = {}
+    if (firstName) update.firstName = firstName
+    if (lastName) update.lastName = lastName
+
+    const user = await User.findByIdAndUpdate(userId, update, { new: true })
+    if (!user) return res.status(404).json({ message: 'User not found' })
+
+    res.json({ message: 'Name updated', user: { id: user._id, firstName: user.firstName, lastName: user.lastName } })
+  } catch (err) {
+    res.status(500).json({ message: err.message })
+  }
 })
 
 module.exports = router

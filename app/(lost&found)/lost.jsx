@@ -9,23 +9,10 @@ import ThemedText from '../../components/ThemedText'
 import PostOptionsMenu from '../../components/PostOptionsMenu'
 import { API_URL } from '../../lib/api'
 
-const LOST_DATA = [
-    {
-        id: '1',
-        user: 'RomarDelaCruz',
-        time: '1 min ago',
-        image: 'https://images.playstation.com/is/image/pswstatic/ps4-dualshock-4-listing-thumb-01-en-11sep18?$facebook$',
-        contact: '0912-***-***0',
-        messenger: 'romardelacruz',
-        location: 'CCL 305',
-        description: 'Black PS4 controller, last seen on gaming area'
-    }
-]
+
 
 const LostScreen = () => {
     const router = useRouter();
-    const [isSearching, setIsSearching] = useState(false);
-    const [searchText, setSearchText] = useState('');
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -188,33 +175,18 @@ const LostScreen = () => {
             </Modal>
 
             <View style={styles.header}>
-                {/* UPPER LEFT: SEARCH BUTTON */}
-                <View style={styles.sideContainer}>
-                    <TouchableOpacity onPress={() => setIsSearching(!isSearching)}>
-                        <Ionicons name={isSearching ? "close" : "search"} size={26} color="black" />
-                    </TouchableOpacity>
-                </View>
+                
 
                 {/* CENTERED TABS OR SEARCH INPUT */}
                 <View style={styles.centerContainer}>
-                    {isSearching ? (
-                        <TextInput
-                            style={styles.searchInput}
-                            placeholder="Search lost items..."
-                            value={searchText}
-                            onChangeText={setSearchText}
-                            autoFocus
-                        />
-                    ) : (
-                        <View style={styles.tabContainer}>
-                            <TouchableOpacity style={styles.tab}>
-                                <ThemedText style={[styles.tabText, styles.activeLostText]}>LOST</ThemedText>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => router.replace('/(lost&found)/found')} style={styles.tab}>
-                                <ThemedText style={styles.tabText}>FOUND</ThemedText>
-                            </TouchableOpacity>
-                        </View>
-                    )}
+                    <View style={styles.tabContainer}>
+                        <TouchableOpacity style={styles.tab}>
+                            <ThemedText style={[styles.tabText, styles.activeLostText]}>LOST</ThemedText>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => router.replace('/(lost&found)/found')} style={styles.tab}>
+                            <ThemedText style={styles.tabText}>FOUND</ThemedText>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 {/* UPPER RIGHT: BACK BUTTON */}

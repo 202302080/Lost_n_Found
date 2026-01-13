@@ -1,46 +1,19 @@
 import React, { useState, useEffect } from 'react'; 
-import { StyleSheet, View, TouchableOpacity, Image, FlatList, TextInput, ActivityIndicator, RefreshControl, Modal } from 'react-native'
+import { StyleSheet, View, TouchableOpacity, Image, FlatList, ActivityIndicator, RefreshControl, Modal } from 'react-native'
 import { Ionicons } from '@expo/vector-icons' 
 import { useRouter, useFocusEffect } from 'expo-router'
 import axios from 'axios'
 
 import ThemedView from '../../components/ThemedView'
-import Spacer from '../../components/Spacer'
+//import Spacer from '../../components/Spacer'
 import ThemedText from '../../components/ThemedText'
 import PostOptionsMenu from '../../components/PostOptionsMenu'
 import { API_URL } from '../../lib/api'
 
-const POSTS = [
-    {
-        id: '1',
-        user: 'RomarDelaCruz',
-        type: 'lost',
-        time: '1 min ago',
-        image: 'https://images.playstation.com/is/image/pswstatic/ps4-dualshock-4-listing-thumb-01-en-11sep18?$facebook$',
-        contact: '0912-***-***0',
-        messenger: 'romardelacruz',
-        location: 'CCL 305',
-        description: 'Black PS4 controller, last seen on gaming area',
-        avatar: 'https://randomuser.me/api/portraits/men/1.jpg' // Added avatar for chat
-    },
-    {
-        id: '2',
-        user: 'JohnwilVerano',
-        type: 'found',
-        time: '1 min ago',
-        image: 'https://m.media-amazon.com/images/I/61N-U7M3LpL._AC_SL1500_.jpg',
-        contact: '0912-***-***0',
-        messenger: 'johnwilverano',
-        location: 'DIT 1st Floor',
-        description: 'Red and black school bag, contains books and notebooks',
-        avatar: 'https://randomuser.me/api/portraits/men/2.jpg' // Added avatar for chat
-    }
-]
 
 const Home = () => {
     const router = useRouter();
-    const [isSearching, setIsSearching] = useState(false);
-    const [searchText, setSearchText] = useState('');
+    
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -206,38 +179,24 @@ const Home = () => {
             </Modal>
 
             <View style={styles.header}>
-                <View style={styles.sideContainer}>
-                    <TouchableOpacity onPress={() => setIsSearching(!isSearching)}>
-                        <Ionicons name={isSearching ? "close" : "search"} size={26} color="black" />
-                    </TouchableOpacity>
-                </View>
+                <View style={styles.sideContainer} />
 
                 <View style={styles.centerContainer}>
-                    {isSearching ? (
-                        <TextInput
-                            style={styles.searchInput}
-                            placeholder="Search posts..."
-                            value={searchText}
-                            onChangeText={setSearchText}
-                            autoFocus
-                        />
-                    ) : (
-                        <View style={styles.tabContainer}>
-                            <TouchableOpacity 
-                                style={styles.tab} 
-                                onPress={() => router.push('/(lost&found)/lost')}
-                            >
-                                <ThemedText style={styles.tabText}>LOST</ThemedText>
-                            </TouchableOpacity>
+                    <View style={styles.tabContainer}>
+                        <TouchableOpacity 
+                            style={styles.tab} 
+                            onPress={() => router.push('/(lost&found)/lost')}
+                        >
+                            <ThemedText style={styles.tabText}>LOST</ThemedText>
+                        </TouchableOpacity>
 
-                            <TouchableOpacity 
-                                style={styles.tab} 
-                                onPress={() => router.push('/(lost&found)/found')}
-                            >
-                                <ThemedText style={styles.tabText}>FOUND</ThemedText>
-                            </TouchableOpacity>
-                        </View>
-                    )}
+                        <TouchableOpacity 
+                            style={styles.tab} 
+                            onPress={() => router.push('/(lost&found)/found')}
+                        >
+                            <ThemedText style={styles.tabText}>FOUND</ThemedText>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
 
@@ -292,14 +251,7 @@ const styles = StyleSheet.create({
     tabContainer: { flexDirection: 'row', gap: 30 },
     tab: { paddingVertical: 5 },
     tabText: { fontWeight: 'bold', fontSize: 18 },
-    searchInput: {
-        backgroundColor: '#fff',
-        width: '95%',
-        height: 35,
-        borderRadius: 10,
-        paddingHorizontal: 10,
-        fontSize: 14,
-    },
+    
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',

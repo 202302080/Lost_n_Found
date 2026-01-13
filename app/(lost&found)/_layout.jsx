@@ -43,9 +43,12 @@ const LostFoundLayout = () => {
                     ),
                     tabBarButton: (props) => (
                         <TouchableOpacity
-                            {...props}
+                            style={props?.style}
+                            accessibilityLabel={props?.accessibilityLabel}
                             onPress={() => router.replace('/(dashboard)/feed')}
-                        />
+                        >
+                            {props?.children}
+                        </TouchableOpacity>
                     )
                 }}
             />
@@ -63,9 +66,12 @@ const LostFoundLayout = () => {
                     ),
                     tabBarButton: (props) => (
                         <TouchableOpacity
-                            {...props}
+                            style={props?.style}
+                            accessibilityLabel={props?.accessibilityLabel}
                             onPress={() => setCreateModalVisible(true)}
-                        />
+                        >
+                            {props?.children}
+                        </TouchableOpacity>
                     )
                 }}
             />

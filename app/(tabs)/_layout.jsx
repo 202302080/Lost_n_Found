@@ -24,14 +24,19 @@ export default function TabLayout() {
           options={{
             title: 'Create',
             tabBarIcon: ({ color }) => <Ionicons name="add-circle" size={32} color={color} />,
+            // Custom button: do not spread navigator props to avoid
+            // creating a 'selected' state when opening the modal.
             tabBarButton: (props) => (
               <TouchableOpacity
-                {...props}
+                style={props?.style}
+                accessibilityLabel={props?.accessibilityLabel}
                 onPress={() => {
                   console.log("Custom button pressed!");
                   setCreateModalVisible(true);
                 }}
-              />
+              >
+                {props?.children}
+              </TouchableOpacity>
             ),
           }}
         />
