@@ -32,8 +32,10 @@ const LostScreen = () => {
                     time: formatTime(post.createdAt),
                     location: post.location || 'Not specified',
                     description: post.description || 'No description',
-                    // --- CHANGED LINE: Randomize gender (men/women) and ID (0-90) ---
-                    avatar: post.avatar || `https://randomuser.me/api/portraits/${Math.random() > 0.5 ? 'men' : 'women'}/${Math.floor(Math.random() * 90)}.jpg`,
+                    // --- CHANGED LINE: Generates avatar based on User's Initials ---
+                    // 'ui-avatars.com' creates an image using the name provided. 
+                    // background=random gives each user a unique color.
+                    avatar: post.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(post.user || 'User')}&background=random&color=fff`,
                     image: post.imageUrl || null
                 }));
                 setPosts(formattedPosts);

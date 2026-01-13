@@ -7,23 +7,25 @@ import { useUser } from '../../hooks/useUser'
 
 const Profile = () => {
   const { user } = useUser()
-  const DEFAULT_AVATAR = 'https://randomuser.me/api/portraits/men/1.jpg';
+  
+  // --- CHANGED: Now uses the user's name to generate initials ---
+  const userNameForAvatar = user ? `${user.firstName}+${user.lastName}` : 'User';
+  const DEFAULT_AVATAR = `https://ui-avatars.com/api/?name=${userNameForAvatar}&background=random&color=fff`;
+  // -------------------------------------------------------------
 
   return (
     <ThemedView style={styles.container}>
         <ThemedText title={true} style={styles.heading}>
-           
+            
         </ThemedText>
         
         <Spacer />
 
         <View style={styles.profileSection}>
-            {/* --- UPDATED: Uses the default avatar if none exists --- */}
             <Image 
                 source={{ uri: user?.profilePicture || DEFAULT_AVATAR }} 
                 style={styles.avatarImage} 
             />
-            {/* ----------------------------------------------------- */}
 
             <ThemedText style={styles.userName}>
                 {user ? `${user.firstName} ${user.lastName}` : 'Guest User'}

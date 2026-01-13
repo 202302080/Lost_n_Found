@@ -39,8 +39,10 @@ const CreatePostModal = ({ visible, onClose, onPostCreated }) => {
   const [postType, setPostType] = useState('lost');
   const [loading, setLoading] = useState(false);
 
-  // Default avatar used in Feed
-  const DEFAULT_AVATAR = 'https://randomuser.me/api/portraits/men/1.jpg';
+  // --- CHANGED: Now uses the user's name to generate initials ---
+  const userNameForAvatar = user ? `${user.firstName}+${user.lastName}` : 'User';
+  const DEFAULT_AVATAR = `https://ui-avatars.com/api/?name=${userNameForAvatar}&background=random&color=fff`;
+  // -------------------------------------------------------------
 
   const pickImage = async () => {
     try {
@@ -83,6 +85,9 @@ const CreatePostModal = ({ visible, onClose, onPostCreated }) => {
           imageUrl = `data:image/jpeg;base64,${base64}`;
       }
 
+      // If user doesn't have a custom avatar, send the UI-Avatars URL
+      const finalAvatar = user.profilePicture || DEFAULT_AVATAR;
+
       const payload = {
         type: postType,
         item: itemCategory,
@@ -93,6 +98,7 @@ const CreatePostModal = ({ visible, onClose, onPostCreated }) => {
         imageUrl: imageUrl,
         user: userName,
         userId: user.id,
+        avatar: finalAvatar // Send the avatar URL to the feed
       };
 
       const response = await axios.post(`${API_URL}/posts/create`, payload);
@@ -134,7 +140,7 @@ const CreatePostModal = ({ visible, onClose, onPostCreated }) => {
           
           <View style={styles.separator} />
 
-          {/* --- UPDATED: User Info Section (Matches Feed Logic) --- */}
+          {/* User Info Section */}
           <View style={styles.userInfo}>
             <Image 
                 source={{ uri: user?.profilePicture || DEFAULT_AVATAR }} 
@@ -148,7 +154,6 @@ const CreatePostModal = ({ visible, onClose, onPostCreated }) => {
               <ThemedText style={styles.userRole}>Public</ThemedText>
             </View>
           </View>
-          {/* ------------------------------------------------------ */}
 
           {/* Toggle */}
           <View style={styles.toggleContainer}>
@@ -300,7 +305,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 15,
   },
-  // Matches the feed avatar style
   avatarImage: {
     width: 40,
     height: 40,
