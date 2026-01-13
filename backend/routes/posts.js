@@ -150,6 +150,64 @@ router.get('/:id', async (req, res) => {
   }
 })
 
+// === NEW: Update (Mark as Found) ===
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params
+    const { type } = req.body
+
+    // We only support converting 'lost' -> 'found' here
+    if (type === 'found') {
+      // 1. Find the item in the 'LostItem' collection
+      const lostItem = await LostItem.findById(id)
+
+      if (!lostItem) {
+        // If not in LostItem, check if it's already in FoundItem just to be safe
+        const alreadyFound = await FoundItem.findById(id)
+        if (alreadyFound) {
+          return res.status(200).json(alreadyFound)
+        }
+        return res.status(404).json({ message: 'Post not found' })
+      }
+
+      // 2. Create new data object for FoundItem collection
+      // (Mongoose documents are objects, but we want the raw data)
+      const itemData = lostItem.toObject()
+      delete itemData._id // Remove old ID so a new one is generated, OR keep it if you want same ID
+      // Usually better to let Mongo generate a new ID, or explicitly set _id: itemData._id
+      // Let's keep the ID consistent if your logic relies on it, otherwise delete it.
+      // For now, let's just copy the fields we need explicitly to avoid _id collisions if not handled right.
+      
+      const newItemData = {
+        item: itemData.item,
+        contact: itemData.contact,
+        messenger: itemData.messenger,
+        location: itemData.location,
+        description: itemData.description,
+        imageUrl: itemData.imageUrl,
+        user: itemData.user,
+        userId: itemData.userId,
+        avatar: itemData.avatar,
+        // Found items might not need all fields, but copying is safer
+      }
+
+      // 3. Create the item in FoundItem collection
+      const newFoundItem = await FoundItem.create(newItemData)
+
+      // 4. Delete the item from LostItem collection
+      await LostItem.findByIdAndDelete(id)
+
+      return res.status(200).json(newFoundItem)
+    }
+
+    res.status(400).json({ message: 'Invalid update type' })
+
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: error.message })
+  }
+})
+
 // Delete a post
 router.delete('/:id', async (req, res) => {
   try {

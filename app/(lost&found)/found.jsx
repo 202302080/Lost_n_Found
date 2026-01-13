@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, TouchableOpacity, FlatList, Image, TextInput, ActivityIndicator, RefreshControl, Modal } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, FlatList, Image, ActivityIndicator, RefreshControl, Modal } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
@@ -9,23 +9,8 @@ import ThemedText from '../../components/ThemedText';
 import PostOptionsMenu from '../../components/PostOptionsMenu';
 import { API_URL } from '../../lib/api';
 
-const FOUND_DATA = [
-    {
-        id: '2',
-        user: 'JohnwilVerano',
-        time: '1 min ago',
-        image: 'https://m.media-amazon.com/images/I/61N-U7M3LpL._AC_SL1500_.jpg',
-        contact: '0912-***-***0',
-        messenger: 'johnwilverano',
-        location: 'DIT 1st Floor',
-        description: 'Red and black school bag, contains books and notebooks'
-    }
-];
-
 const FoundScreen = () => {
     const router = useRouter();
-    const [isSearching, setIsSearching] = useState(false);
-    const [searchText, setSearchText] = useState('');
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -186,38 +171,17 @@ const FoundScreen = () => {
                     </View>
                 </View>
             </Modal>
+            
             <View style={styles.header}>
-                {/* UPPER LEFT: SEARCH BUTTON */}
-                <View style={styles.sideContainer}>
-                    <TouchableOpacity onPress={() => setIsSearching(!isSearching)}>
-                        <Ionicons name={isSearching ? "close" : "search"} size={26} color="black" />
-                    </TouchableOpacity>
-                </View>
-
-                {/* CENTERED TABS OR SEARCH INPUT */}
                 <View style={styles.centerContainer}>
-                    {isSearching ? (
-                        <TextInput
-                            style={styles.searchInput}
-                            placeholder="Search items..."
-                            value={searchText}
-                            onChangeText={setSearchText}
-                            autoFocus
-                        />
-                    ) : (
-                        <View style={styles.tabContainer}>
-                            <TouchableOpacity onPress={() => router.replace('/(lost&found)/lost')}>
-                                <ThemedText style={styles.tabText}>LOST</ThemedText>
-                            </TouchableOpacity>
-                            <TouchableOpacity>
-                                <ThemedText style={[styles.tabText, styles.activeFoundText]}>FOUND</ThemedText>
-                            </TouchableOpacity>
-                        </View>
-                    )}
-                </View>
-
-                {/* UPPER RIGHT: EMPTY SPACE FOR ALIGNMENT */}
-                <View style={styles.sideContainerRight}>
+                    <View style={styles.tabContainer}>
+                        <TouchableOpacity onPress={() => router.replace('/(lost&found)/lost')}>
+                            <ThemedText style={styles.tabText}>LOST</ThemedText>
+                        </TouchableOpacity>
+                        <TouchableOpacity>
+                            <ThemedText style={[styles.tabText, styles.activeFoundText]}>FOUND</ThemedText>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </View>
 
@@ -262,14 +226,6 @@ const styles = StyleSheet.create({
         paddingBottom: 15, 
         paddingHorizontal: 15 
     },
-    sideContainer: {
-        width: 40,
-        alignItems: 'flex-start',
-    },
-    sideContainerRight: {
-        width: 40,
-        alignItems: 'flex-end',
-    },
     centerContainer: {
         flex: 1,
         alignItems: 'center',
@@ -280,14 +236,6 @@ const styles = StyleSheet.create({
     },
     tabText: { fontSize: 18, fontWeight: '500' },
     activeFoundText: { color: '#32CD32', fontWeight: 'bold' },
-    searchInput: {
-        backgroundColor: '#fff',
-        width: '90%',
-        height: 35,
-        borderRadius: 10,
-        paddingHorizontal: 10,
-        fontSize: 14,
-    },
     postCard: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
     postHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
     avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#DDD' },

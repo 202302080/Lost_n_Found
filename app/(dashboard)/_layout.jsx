@@ -5,11 +5,11 @@ import { useColorScheme } from "react-native"
 import { colors }  from "../../constants/colors"
 import { Ionicons } from "@expo/vector-icons"
 
-// Make sure this path points to your components folder
+
 import CreatePostModal from '../../components/CreatePostModal'
 
 const DashboardLayout = () => {
-    // 1. State for the modal
+
     const [createModalVisible, setCreateModalVisible] = useState(false);
 
     const colorScheme = useColorScheme()
@@ -44,7 +44,7 @@ const DashboardLayout = () => {
                 }}
             />
 
-            {/* 2. Modified Create Tab */}
+
             <Tabs.Screen 
                 name="create" 
                 options={{ 
@@ -56,7 +56,7 @@ const DashboardLayout = () => {
                             color={focused ? theme.iconColorFocused : theme.iconColor}
                         />
                     ),
-                    // This overrides the navigation and opens the modal instead
+               
                     tabBarButton: (props) => (
                         <TouchableOpacity
                             {...props}
@@ -81,7 +81,7 @@ const DashboardLayout = () => {
             />
         </Tabs>
 
-        {/* 3. The Modal Component */}
+
         <CreatePostModal 
             visible={createModalVisible} 
             onClose={() => setCreateModalVisible(false)} 

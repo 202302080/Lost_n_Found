@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, TouchableOpacity, FlatList, Image, TextInput, ActivityIndicator, RefreshControl, Modal } from 'react-native'
+import { StyleSheet, View, TouchableOpacity, FlatList, Image, ActivityIndicator, RefreshControl, Modal } from 'react-native'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import axios from 'axios'
@@ -9,23 +9,8 @@ import ThemedText from '../../components/ThemedText'
 import PostOptionsMenu from '../../components/PostOptionsMenu'
 import { API_URL } from '../../lib/api'
 
-const LOST_DATA = [
-    {
-        id: '1',
-        user: 'RomarDelaCruz',
-        time: '1 min ago',
-        image: 'https://images.playstation.com/is/image/pswstatic/ps4-dualshock-4-listing-thumb-01-en-11sep18?$facebook$',
-        contact: '0912-***-***0',
-        messenger: 'romardelacruz',
-        location: 'CCL 305',
-        description: 'Black PS4 controller, last seen on gaming area'
-    }
-]
-
 const LostScreen = () => {
     const router = useRouter();
-    const [isSearching, setIsSearching] = useState(false);
-    const [searchText, setSearchText] = useState('');
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -38,7 +23,7 @@ const LostScreen = () => {
             const response = await axios.get(`${API_URL}/posts/type/lost`);
             
             if (response.data.posts) {
-                // Format posts to include calculated timestamps
+              
                 const formattedPosts = response.data.posts.map(post => ({
                     ...post,
                     id: post._id,
@@ -73,7 +58,7 @@ const LostScreen = () => {
         return date.toLocaleDateString();
     };
 
-    // Fetch posts when component mounts and when screen is focused
+
     useEffect(() => {
         fetchLostPosts();
     }, []);
@@ -141,7 +126,7 @@ const LostScreen = () => {
 
     return (
         <ThemedView style={styles.container}>
-            {/* Contact Details Modal */}
+     
             <Modal
                 transparent={true}
                 visible={contactModalVisible}
@@ -188,37 +173,16 @@ const LostScreen = () => {
             </Modal>
 
             <View style={styles.header}>
-                {/* UPPER LEFT: SEARCH BUTTON */}
-                <View style={styles.sideContainer}>
-                    <TouchableOpacity onPress={() => setIsSearching(!isSearching)}>
-                        <Ionicons name={isSearching ? "close" : "search"} size={26} color="black" />
-                    </TouchableOpacity>
-                </View>
-
-                {/* CENTERED TABS OR SEARCH INPUT */}
                 <View style={styles.centerContainer}>
-                    {isSearching ? (
-                        <TextInput
-                            style={styles.searchInput}
-                            placeholder="Search lost items..."
-                            value={searchText}
-                            onChangeText={setSearchText}
-                            autoFocus
-                        />
-                    ) : (
-                        <View style={styles.tabContainer}>
-                            <TouchableOpacity style={styles.tab}>
-                                <ThemedText style={[styles.tabText, styles.activeLostText]}>LOST</ThemedText>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={() => router.replace('/(lost&found)/found')} style={styles.tab}>
-                                <ThemedText style={styles.tabText}>FOUND</ThemedText>
-                            </TouchableOpacity>
-                        </View>
-                    )}
+                    <View style={styles.tabContainer}>
+                        <TouchableOpacity style={styles.tab}>
+                            <ThemedText style={[styles.tabText, styles.activeLostText]}>LOST</ThemedText>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => router.replace('/(lost&found)/found')} style={styles.tab}>
+                            <ThemedText style={styles.tabText}>FOUND</ThemedText>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-
-                {/* UPPER RIGHT: BACK BUTTON */}
-                
             </View>
 
             <FlatList 
@@ -262,14 +226,6 @@ const styles = StyleSheet.create({
         paddingBottom: 15, 
         paddingHorizontal: 15 
     },
-    sideContainer: {
-        width: 40,
-        alignItems: 'flex-start',
-    },
-    sideContainerRight: {
-        width: 40,
-        alignItems: 'flex-end',
-    },
     centerContainer: {
         flex: 1,
         alignItems: 'center',
@@ -280,14 +236,6 @@ const styles = StyleSheet.create({
     },
     tabText: { fontSize: 18, fontWeight: '500' },
     activeLostText: { color: '#FF8C00', fontWeight: 'bold' },
-    searchInput: {
-        backgroundColor: '#fff',
-        width: '90%',
-        height: 35,
-        borderRadius: 10,
-        paddingHorizontal: 10,
-        fontSize: 14,
-    },
     postCard: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
     postHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
     avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#DDD' },

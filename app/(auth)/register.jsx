@@ -1,5 +1,7 @@
-import { Keyboard, StyleSheet, Text, TouchableWithoutFeedback, ScrollView, Image } from 'react-native'
+import { Keyboard, StyleSheet, Text, TouchableWithoutFeedback, ScrollView, Image, View, TouchableOpacity, Alert } from 'react-native'
 import { Link, useRouter } from 'expo-router'
+import { useState } from 'react'
+import { Ionicons } from '@expo/vector-icons'
 
 import Logo from '../../assets/img/logo.png'
 import ThemedView from '../../components/ThemedView'
@@ -7,11 +9,7 @@ import Spacer from '../../components/Spacer'
 import ThemedText from '../../components/ThemedText'
 import ThemedButton from '../../components/ThemedButton'
 import ThemedTextInput from '../../components/ThemedTextInput'
-import { useState } from 'react'
 import { API_URL } from '../../lib/api'
-import { Alert } from 'react-native'
-
-
 
 const Register = () => {
     const router = useRouter()
@@ -20,6 +18,11 @@ const Register = () => {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+    
+    // State for toggling password visibility
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+    
     const [loading, setLoading] = useState(false)
 
     const handleSubmit = async () => {
@@ -83,7 +86,6 @@ const Register = () => {
         }
     }
 
-
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -100,13 +102,10 @@ const Register = () => {
                         Find what's lost, return what's found
                     </ThemedText>
 
-
                     {/* Register Form Title */}
                     <ThemedText title={true} style={styles.formTitle}>
                         Create Your Account
                     </ThemedText>
-
-                    
 
                     {/* Form Inputs */}
                     <ThemedTextInput
@@ -135,23 +134,49 @@ const Register = () => {
                         value={email}
                     />
 
-                    <ThemedTextInput
-                        style={styles.input}
-                        placeholder="Password"
-                        placeholderTextColor="#999"
-                        onChangeText={setPassword}
-                        value={password}
-                        secureTextEntry
-                    />
+                    {/* Password Input */}
+                    <View style={styles.passwordContainer}>
+                        <ThemedTextInput
+                            style={styles.passwordInput}
+                            placeholder="Password"
+                            placeholderTextColor="#999"
+                            onChangeText={setPassword}
+                            value={password}
+                            secureTextEntry={!showPassword}
+                        />
+                        <TouchableOpacity 
+                            style={styles.eyeIcon} 
+                            onPress={() => setShowPassword(!showPassword)}
+                        >
+                            <Ionicons 
+                                name={showPassword ? "eye-off" : "eye"} 
+                                size={24} 
+                                color="#666" 
+                            />
+                        </TouchableOpacity>
+                    </View>
 
-                    <ThemedTextInput
-                        style={styles.input}
-                        placeholder="Confirm Password"
-                        placeholderTextColor="#999"
-                        onChangeText={setConfirmPassword}
-                        value={confirmPassword}
-                        secureTextEntry
-                    />
+                    {/* Confirm Password Input */}
+                    <View style={styles.passwordContainer}>
+                        <ThemedTextInput
+                            style={styles.passwordInput}
+                            placeholder="Confirm Password"
+                            placeholderTextColor="#999"
+                            onChangeText={setConfirmPassword}
+                            value={confirmPassword}
+                            secureTextEntry={!showConfirmPassword}
+                        />
+                        <TouchableOpacity 
+                            style={styles.eyeIcon} 
+                            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                        >
+                            <Ionicons 
+                                name={showConfirmPassword ? "eye-off" : "eye"} 
+                                size={24} 
+                                color="#666" 
+                            />
+                        </TouchableOpacity>
+                    </View>
 
                     <Spacer height={15} />
 
@@ -189,6 +214,7 @@ const styles = StyleSheet.create({
         flexGrow: 1,
         justifyContent: 'center',
         paddingVertical: 20,
+        backgroundColor: '#fff'
     },
     container: {
         flex: 1,
@@ -208,6 +234,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 8,
         letterSpacing: 0.5,
+        color: '#333'
     },
     subtitle: {
         fontSize: 14,
@@ -215,6 +242,7 @@ const styles = StyleSheet.create({
         marginBottom: 35,
         opacity: 0.7,
         fontStyle: 'italic',
+        color: '#666'
     },
     formTitle: {
         fontSize: 22,
@@ -222,31 +250,68 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 25,
         letterSpacing: 0.3,
+        color: '#333'
     },
     input: {
         width: '100%',
         marginBottom: 14,
         borderRadius: 10,
         paddingVertical: 12,
+        backgroundColor: '#f5f5f5', 
+        paddingHorizontal: 15,
+        borderWidth: 1,
+        borderColor: '#eee'
+    },
+    passwordContainer: {
+        width: '100%',
+        marginBottom: 14,
+        position: 'relative',
+        justifyContent: 'center',
+    },
+    passwordInput: {
+        width: '100%',
+        borderRadius: 10,
+        paddingVertical: 12,
+        paddingLeft: 15,
+        paddingRight: 50, 
+        backgroundColor: '#f5f5f5',
+        borderWidth: 1,
+        borderColor: '#eee'
+    },
+    eyeIcon: {
+        position: 'absolute',
+        right: 15,
+        height: '100%',
+        justifyContent: 'center',
     },
     button: {
         width: '100%',
         marginTop: 8,
-        borderRadius: 10,
+        borderRadius: 25,
+        backgroundColor: '#008000', // Green Theme
+        paddingVertical: 15,
+        alignItems: 'center',
+        justifyContent: 'center',
+        elevation: 3, 
+        shadowColor: '#000', 
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
     },
     buttonText: {
-        color: '#f2f2f2',
-        fontSize: 16,
-        fontWeight: '700',
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
         letterSpacing: 0.5,
     },
     loginText: {
         textAlign: 'center',
         fontSize: 14,
         marginTop: 20,
+        color: '#666'
     },
     loginLink: {
-        color: '#008000',
+        color: '#008000', // Green Theme
         fontWeight: '700',
         fontSize: 14,
     },

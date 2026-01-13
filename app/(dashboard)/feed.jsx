@@ -1,59 +1,29 @@
-import React, { useState, useEffect } from 'react'; 
-import { StyleSheet, View, TouchableOpacity, Image, FlatList, TextInput, ActivityIndicator, RefreshControl, Modal } from 'react-native'
-import { Ionicons } from '@expo/vector-icons' 
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, View, TouchableOpacity, FlatList, Image, ActivityIndicator, RefreshControl, Modal, Alert } from 'react-native'
 import { useRouter, useFocusEffect } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
 import axios from 'axios'
 
 import ThemedView from '../../components/ThemedView'
-import Spacer from '../../components/Spacer'
 import ThemedText from '../../components/ThemedText'
 import PostOptionsMenu from '../../components/PostOptionsMenu'
 import { API_URL } from '../../lib/api'
 
-const POSTS = [
-    {
-        id: '1',
-        user: 'RomarDelaCruz',
-        type: 'lost',
-        time: '1 min ago',
-        image: 'https://images.playstation.com/is/image/pswstatic/ps4-dualshock-4-listing-thumb-01-en-11sep18?$facebook$',
-        contact: '0912-***-***0',
-        messenger: 'romardelacruz',
-        location: 'CCL 305',
-        description: 'Black PS4 controller, last seen on gaming area',
-        avatar: 'https://randomuser.me/api/portraits/men/1.jpg' // Added avatar for chat
-    },
-    {
-        id: '2',
-        user: 'JohnwilVerano',
-        type: 'found',
-        time: '1 min ago',
-        image: 'https://m.media-amazon.com/images/I/61N-U7M3LpL._AC_SL1500_.jpg',
-        contact: '0912-***-***0',
-        messenger: 'johnwilverano',
-        location: 'DIT 1st Floor',
-        description: 'Red and black school bag, contains books and notebooks',
-        avatar: 'https://randomuser.me/api/portraits/men/2.jpg' // Added avatar for chat
-    }
-]
-
-const Home = () => {
+const LostScreen = () => {
     const router = useRouter();
-    const [isSearching, setIsSearching] = useState(false);
-    const [searchText, setSearchText] = useState('');
+  
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [contactModalVisible, setContactModalVisible] = useState(false);
     const [selectedContact, setSelectedContact] = useState(null);
 
-    const fetchPosts = async () => {
+    const fetchLostPosts = async () => {
         try {
             setLoading(true);
-            const response = await axios.get(`${API_URL}/posts/all`);
+            const response = await axios.get(`${API_URL}/posts/type/lost`);
             
             if (response.data.posts) {
-                // Format posts to include calculated timestamps
                 const formattedPosts = response.data.posts.map(post => ({
                     ...post,
                     id: post._id,
@@ -66,10 +36,39 @@ const Home = () => {
                 setPosts(formattedPosts);
             }
         } catch (error) {
-            console.error('Error fetching posts:', error);
+            console.error('Error fetching lost items:', error);
         } finally {
             setLoading(false);
         }
+    };
+
+    // ADDED: Logic to mark item as found
+    const handleMarkAsFound = async (postId) => {
+        Alert.alert(
+            "Mark as Found",
+            "Are you sure you found this item? It will be moved to the Found section.",
+            [
+                { text: "Cancel", style: "cancel" },
+                { 
+                    text: "Yes, Mark Found", 
+                    onPress: async () => {
+                        try {
+                            setLoading(true);
+                            await axios.put(`${API_URL}/posts/${postId}`, { 
+                                type: 'found' 
+                            });
+                            
+                            Alert.alert("Success", "Item marked as found!");
+                            fetchLostPosts(); // Refresh list to remove the item
+                        } catch (error) {
+                            console.error('Error marking as found:', error);
+                            Alert.alert("Error", "Failed to update status.");
+                            setLoading(false);
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     const formatTime = (dateString) => {
@@ -88,38 +87,41 @@ const Home = () => {
         return date.toLocaleDateString();
     };
 
-    // Fetch posts when component mounts and when screen is focused
     useEffect(() => {
-        fetchPosts();
+        fetchLostPosts();
     }, []);
 
     useFocusEffect(
         React.useCallback(() => {
-            fetchPosts();
+            fetchLostPosts();
         }, [])
     );
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await fetchPosts();
+        await fetchLostPosts();
         setRefreshing(false);
     };
 
     const renderPost = ({ item }) => (
         <View style={styles.postCard}>
             <View style={styles.postHeader}>
-                {/* Displaying user avatar if available */}
                 <Image source={{ uri: item.avatar }} style={styles.avatar} />
                 <View style={{ flex: 1, marginLeft: 10 }}>
                     <ThemedText style={styles.username}>
-                        <ThemedText style={{ fontWeight: 'bold' }}>{item.user}</ThemedText> posted a {item.type} item
+                        <ThemedText style={{ fontWeight: 'bold' }}>{item.user}</ThemedText> posted a lost item
                     </ThemedText>
                     <ThemedText style={styles.timestamp}>{item.time}</ThemedText>
                 </View>
-                <PostOptionsMenu postId={item.id} onPostDeleted={fetchPosts} />
+                <PostOptionsMenu 
+                    postId={item.id} 
+                    onPostDeleted={fetchLostPosts}
+                    // Added handler call
+                    onMarkFound={() => handleMarkAsFound(item.id)}
+                />
             </View>
 
-            <Image source={{ uri: item.image }} style={[styles.postImage, { borderColor: item.type === 'lost' ? '#FF8C00' : '#32CD32' }]} />
+            <Image source={{ uri: item.image }} style={styles.postImage} />
 
             <View style={styles.postDetails}>
                 <View style={styles.detailRow}>
@@ -140,9 +142,8 @@ const Home = () => {
                 </View>
             </View>
 
-            {/* UPDATED MESSAGE BUTTON: Navigates to Chat and passes user data */}
             <TouchableOpacity 
-                style={[styles.messageButton, { backgroundColor: item.type === 'lost' ? '#FF9130' : '#39D353' }]}
+                style={styles.messageButton}
                 onPress={() => {
                     setSelectedContact({
                         phone: item.contact,
@@ -158,7 +159,6 @@ const Home = () => {
 
     return (
         <ThemedView style={styles.container}>
-            {/* Contact Details Modal */}
             <Modal
                 transparent={true}
                 visible={contactModalVisible}
@@ -204,51 +204,25 @@ const Home = () => {
                 </View>
             </Modal>
 
+            {/* Header with Search Removed */}
             <View style={styles.header}>
-                <View style={styles.sideContainer}>
-                    <TouchableOpacity onPress={() => setIsSearching(!isSearching)}>
-                        <Ionicons name={isSearching ? "close" : "search"} size={26} color="black" />
-                    </TouchableOpacity>
-                </View>
-
                 <View style={styles.centerContainer}>
-                    {isSearching ? (
-                        <TextInput
-                            style={styles.searchInput}
-                            placeholder="Search posts..."
-                            value={searchText}
-                            onChangeText={setSearchText}
-                            autoFocus
-                        />
-                    ) : (
-                        <View style={styles.tabContainer}>
-                            <TouchableOpacity 
-                                style={styles.tab} 
-                                onPress={() => router.push('/(lost&found)/lost')}
-                            >
-                                <ThemedText style={styles.tabText}>LOST</ThemedText>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity 
-                                style={styles.tab} 
-                                onPress={() => router.push('/(lost&found)/found')}
-                            >
-                                <ThemedText style={styles.tabText}>FOUND</ThemedText>
-                            </TouchableOpacity>
-                        </View>
-                    )}
+                    <View style={styles.tabContainer}>
+                        <TouchableOpacity style={styles.tab}>
+                            <ThemedText style={[styles.tabText, styles.activeLostText]}>LOST</ThemedText>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => router.replace('/(lost&found)/found')} style={styles.tab}>
+                            <ThemedText style={styles.tabText}>FOUND</ThemedText>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-
-
-
             </View>
 
-            <FlatList
-                data={posts}
+            <FlatList 
+                data={posts} 
+                renderItem={renderPost} 
                 keyExtractor={item => item.id}
-                renderItem={renderPost}
                 contentContainerStyle={{ paddingBottom: 20 }}
-                showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
@@ -264,7 +238,7 @@ const Home = () => {
                         </View>
                     ) : (
                         <View style={styles.emptyContainer}>
-                            <ThemedText style={styles.emptyText}>No posts yet</ThemedText>
+                            <ThemedText style={styles.emptyText}>No lost items yet</ThemedText>
                         </View>
                     )
                 }
@@ -273,32 +247,47 @@ const Home = () => {
     )
 }
 
-export default Home
+export default LostScreen
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#C4C4C4',
+    header: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: '#C4C4C4', 
         paddingTop: 50, 
-        paddingBottom: 15,
-        paddingHorizontal: 15,
+        paddingBottom: 15, 
+        paddingHorizontal: 15 
     },
-    sideContainer: { width: 40, alignItems: 'flex-start' },
-    sideContainerRight: { width: 40, alignItems: 'flex-end' },
-    centerContainer: { flex: 1, alignItems: 'center' },
-    tabContainer: { flexDirection: 'row', gap: 30 },
-    tab: { paddingVertical: 5 },
-    tabText: { fontWeight: 'bold', fontSize: 18 },
-    searchInput: {
-        backgroundColor: '#fff',
-        width: '95%',
-        height: 35,
-        borderRadius: 10,
-        paddingHorizontal: 10,
-        fontSize: 14,
+    centerContainer: {
+        flex: 1,
+        alignItems: 'center',
     },
+    tabContainer: { 
+        flexDirection: 'row', 
+        gap: 30
+    },
+    tabText: { fontSize: 18, fontWeight: '500' },
+    activeLostText: { color: '#FF8C00', fontWeight: 'bold' },
+    postCard: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
+    postHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
+    avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#DDD' },
+    username: { fontSize: 13 },
+    timestamp: { fontSize: 11, color: '#888' },
+    postImage: { 
+        width: '100%', 
+        height: 220, 
+        borderRadius: 40, 
+        borderWidth: 3, 
+        borderColor: '#FF8C00', 
+        marginBottom: 10 
+    },
+    postDetails: { paddingHorizontal: 10, marginBottom: 10 },
+    detailRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
+    detailIcon: { marginRight: 8, width: 20 },
+    detailText: { fontSize: 13, marginBottom: 2 },
+    messageButton: { backgroundColor: '#FF9130', paddingVertical: 12, borderRadius: 25, alignItems: 'center' },
+    messageButtonText: { color: '#fff', fontWeight: 'bold' },
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -315,18 +304,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#999',
     },
-    postCard: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
-    postHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
-    avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#DDD' },
-    username: { fontSize: 13 },
-    timestamp: { fontSize: 11, color: '#888' },
-    postImage: { width: '100%', height: 220, borderRadius: 40, borderWidth: 3, marginBottom: 10 },
-    postDetails: { paddingHorizontal: 10, marginBottom: 10 },
-    detailRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-    detailIcon: { marginRight: 8, width: 20 },
-    detailText: { fontSize: 13, marginBottom: 2 },
-    messageButton: { paddingVertical: 12, borderRadius: 25, alignItems: 'center' },
-    messageButtonText: { color: '#fff', fontWeight: 'bold' },
     modalOverlay: {
         flex: 1,
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
