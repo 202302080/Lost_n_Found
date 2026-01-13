@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, View, TouchableOpacity, FlatList, Image, ActivityIndicator, RefreshControl, Modal } from 'react-native'
+import { StyleSheet, View, TouchableOpacity, FlatList, Image, ActivityIndicator, RefreshControl, Modal, Alert } from 'react-native'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import axios from 'axios'
@@ -19,11 +19,9 @@ const LostScreen = () => {
 
     const fetchLostPosts = async () => {
         try {
-            setLoading(true);
+            if (posts.length === 0) setLoading(true);
             const response = await axios.get(`${API_URL}/posts/type/lost`);
-            
             if (response.data.posts) {
-              
                 const formattedPosts = response.data.posts.map(post => ({
                     ...post,
                     id: post._id,
@@ -42,32 +40,48 @@ const LostScreen = () => {
         }
     };
 
+    // LOGIC: Remove from list instantly + Tell server to delete
+    const handleMarkAsFound = async (postId) => {
+        Alert.alert(
+            "Mark as Found",
+            "Has this item been recovered? It will be removed from the list.",
+            [
+                { text: "Cancel", style: "cancel" },
+                { 
+                    text: "Yes, Remove It", 
+                    onPress: async () => {
+                        try {
+                            // 1. Optimistic UI Update: Remove it immediately
+                            setPosts(currentPosts => currentPosts.filter(post => post.id !== postId));
+
+                            // 2. Send Request
+                            await axios.put(`${API_URL}/posts/${postId}`, { type: 'found' });
+                            
+                            Alert.alert("Success", "Item marked as found and removed.");
+                        } catch (error) {
+                            console.error('Error marking as found:', error);
+                            Alert.alert("Error", "Could not sync with server.");
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
     const formatTime = (dateString) => {
         const date = new Date(dateString);
         const now = new Date();
         const diffMs = now - date;
         const diffMins = Math.floor(diffMs / 60000);
-        const diffHours = Math.floor(diffMs / 3600000);
-        const diffDays = Math.floor(diffMs / 86400000);
-
         if (diffMins < 1) return 'just now';
         if (diffMins < 60) return `${diffMins} min ago`;
+        const diffHours = Math.floor(diffMs / 3600000);
         if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-        if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-        
         return date.toLocaleDateString();
     };
 
-
-    useEffect(() => {
-        fetchLostPosts();
-    }, []);
-
-    useFocusEffect(
-        React.useCallback(() => {
-            fetchLostPosts();
-        }, [])
-    );
+    useEffect(() => { fetchLostPosts(); }, []);
+    useFocusEffect(React.useCallback(() => { fetchLostPosts(); }, []));
 
     const onRefresh = async () => {
         setRefreshing(true);
@@ -85,11 +99,13 @@ const LostScreen = () => {
                     </ThemedText>
                     <ThemedText style={styles.timestamp}>{item.time}</ThemedText>
                 </View>
-                <PostOptionsMenu postId={item.id} onPostDeleted={fetchLostPosts} />
+                <PostOptionsMenu 
+                    postId={item.id} 
+                    onPostDeleted={fetchLostPosts}
+                    onMarkFound={() => handleMarkAsFound(item.id)}
+                />
             </View>
-
             <Image source={{ uri: item.image }} style={styles.postImage} />
-
             <View style={styles.postDetails}>
                 <View style={styles.detailRow}>
                     <Ionicons name="call" size={18} color="#666" style={styles.detailIcon} />
@@ -108,14 +124,10 @@ const LostScreen = () => {
                     <ThemedText style={styles.detailText}>{item.description}</ThemedText>
                 </View>
             </View>
-
             <TouchableOpacity 
                 style={styles.messageButton}
                 onPress={() => {
-                    setSelectedContact({
-                        phone: item.contact,
-                        messenger: item.messenger
-                    });
+                    setSelectedContact({ phone: item.contact, messenger: item.messenger });
                     setContactModalVisible(true);
                 }}
             >
@@ -126,13 +138,7 @@ const LostScreen = () => {
 
     return (
         <ThemedView style={styles.container}>
-     
-            <Modal
-                transparent={true}
-                visible={contactModalVisible}
-                animationType="fade"
-                onRequestClose={() => setContactModalVisible(false)}
-            >
+            <Modal transparent={true} visible={contactModalVisible} animationType="fade" onRequestClose={() => setContactModalVisible(false)}>
                 <View style={styles.modalOverlay}>
                     <View style={styles.contactModal}>
                         <View style={styles.modalHeader}>
@@ -141,7 +147,6 @@ const LostScreen = () => {
                                 <Ionicons name="close" size={24} color="#333" />
                             </TouchableOpacity>
                         </View>
-
                         {selectedContact && (
                             <View style={styles.contactInfo}>
                                 <View style={styles.contactItem}>
@@ -151,7 +156,6 @@ const LostScreen = () => {
                                         <ThemedText style={styles.contactValue}>{selectedContact.phone}</ThemedText>
                                     </View>
                                 </View>
-
                                 <View style={styles.contactItem}>
                                     <Ionicons name="chatbubble" size={20} color="#FF8C00" />
                                     <View style={styles.contactDetail}>
@@ -161,11 +165,7 @@ const LostScreen = () => {
                                 </View>
                             </View>
                         )}
-
-                        <TouchableOpacity 
-                            style={styles.closeButton}
-                            onPress={() => setContactModalVisible(false)}
-                        >
+                        <TouchableOpacity style={styles.closeButton} onPress={() => setContactModalVisible(false)}>
                             <ThemedText style={styles.closeButtonText}>Close</ThemedText>
                         </TouchableOpacity>
                     </View>
@@ -191,22 +191,13 @@ const LostScreen = () => {
                 keyExtractor={item => item.id}
                 contentContainerStyle={{ paddingBottom: 20 }}
                 refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                        colors={['#FF8C00']}
-                        tintColor="#FF8C00"
-                    />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#FF8C00']} tintColor="#FF8C00" />
                 }
                 ListEmptyComponent={
                     loading ? (
-                        <View style={styles.loadingContainer}>
-                            <ActivityIndicator size="large" color="#FF8C00" />
-                        </View>
+                        <View style={styles.loadingContainer}><ActivityIndicator size="large" color="#FF8C00" /></View>
                     ) : (
-                        <View style={styles.emptyContainer}>
-                            <ThemedText style={styles.emptyText}>No lost items yet</ThemedText>
-                        </View>
+                        <View style={styles.emptyContainer}><ThemedText style={styles.emptyText}>No lost items yet</ThemedText></View>
                     )
                 }
             />
@@ -218,22 +209,9 @@ export default LostScreen
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#fff' },
-    header: { 
-        flexDirection: 'row', 
-        alignItems: 'center', 
-        backgroundColor: '#C4C4C4', 
-        paddingTop: 50, 
-        paddingBottom: 15, 
-        paddingHorizontal: 15 
-    },
-    centerContainer: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    tabContainer: { 
-        flexDirection: 'row', 
-        gap: 30
-    },
+    header: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#C4C4C4', paddingTop: 50, paddingBottom: 15, paddingHorizontal: 15 },
+    centerContainer: { flex: 1, alignItems: 'center' },
+    tabContainer: { flexDirection: 'row', gap: 30 },
     tabText: { fontSize: 18, fontWeight: '500' },
     activeLostText: { color: '#FF8C00', fontWeight: 'bold' },
     postCard: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
@@ -241,94 +219,25 @@ const styles = StyleSheet.create({
     avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#DDD' },
     username: { fontSize: 13 },
     timestamp: { fontSize: 11, color: '#888' },
-    postImage: { 
-        width: '100%', 
-        height: 220, 
-        borderRadius: 40, 
-        borderWidth: 3, 
-        borderColor: '#FF8C00', 
-        marginBottom: 10 
-    },
+    postImage: { width: '100%', height: 220, borderRadius: 40, borderWidth: 3, borderColor: '#FF8C00', marginBottom: 10 },
     postDetails: { paddingHorizontal: 10, marginBottom: 10 },
     detailRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
     detailIcon: { marginRight: 8, width: 20 },
     detailText: { fontSize: 13, marginBottom: 2 },
     messageButton: { backgroundColor: '#FF9130', paddingVertical: 12, borderRadius: 25, alignItems: 'center' },
     messageButtonText: { color: '#fff', fontWeight: 'bold' },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 50,
-    },
-    emptyContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 50,
-    },
-    emptyText: {
-        fontSize: 16,
-        color: '#999',
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    contactModal: {
-        backgroundColor: '#fff',
-        borderRadius: 15,
-        padding: 20,
-        width: '80%',
-        maxWidth: 350,
-    },
-    modalHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 15,
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    contactInfo: {
-        marginVertical: 10,
-    },
-    contactItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginVertical: 12,
-        paddingVertical: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    contactDetail: {
-        marginLeft: 15,
-        flex: 1,
-    },
-    contactLabel: {
-        fontSize: 12,
-        color: '#999',
-        marginBottom: 3,
-    },
-    contactValue: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#333',
-    },
-    closeButton: {
-        backgroundColor: '#FF8C00',
-        padding: 12,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginTop: 15,
-    },
-    closeButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
+    loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 50 },
+    emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingVertical: 50 },
+    emptyText: { fontSize: 16, color: '#999' },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'center', alignItems: 'center' },
+    contactModal: { backgroundColor: '#fff', borderRadius: 15, padding: 20, width: '80%', maxWidth: 350 },
+    modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
+    modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#333' },
+    contactInfo: { marginVertical: 10 },
+    contactItem: { flexDirection: 'row', alignItems: 'center', marginVertical: 12, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#eee' },
+    contactDetail: { marginLeft: 15, flex: 1 },
+    contactLabel: { fontSize: 12, color: '#999', marginBottom: 3 },
+    contactValue: { fontSize: 14, fontWeight: '600', color: '#333' },
+    closeButton: { backgroundColor: '#FF8C00', padding: 12, borderRadius: 8, alignItems: 'center', marginTop: 15 },
+    closeButtonText: { color: '#fff', fontWeight: 'bold' },
 })
