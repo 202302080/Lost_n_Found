@@ -1,4 +1,6 @@
 const router = require('express').Router()
+const mongoose = require('mongoose')
+require('../models/User') // registers the User model used by populate('userId')
 const LostItem = require('../models/LostItem')
 const FoundItem = require('../models/FoundItem')
 
@@ -43,15 +45,58 @@ router.post('/create', async (req, res) => {
   }
 })
 
+// Post images are stored in the database as base64 "data:" strings, which can be
+// hundreds of KB each. Lists must not carry them (a list of ~15 posts was 7 MB and
+// froze the app), so list routes cut imageUrl short and replace base64 images with
+// a link to GET /api/posts/:id/image, which serves the picture on its own.
+const LIST_FIELDS = {
+  item: 1, contact: 1, messenger: 1, location: 1, description: 1,
+  user: 1, userId: 1, avatar: 1, createdAt: 1, updatedAt: 1,
+  imageUrl: { $substrCP: [{ $ifNull: ['$imageUrl', ''] }, 0, 2000] },
+}
+
+const toListPost = (post, type) => {
+  let imageUrl = post.imageUrl || null
+  if (imageUrl && imageUrl.startsWith('data:')) {
+    // version the link with updatedAt so an edited image is not served from cache
+    imageUrl = `/api/posts/${post._id}/image?v=${new Date(post.updatedAt || 0).getTime()}`
+  }
+  return { ...post, imageUrl, type }
+}
+
+const listPosts = async (Model, filter, type) => {
+  const posts = await Model.find(filter, LIST_FIELDS)
+    .sort({ createdAt: -1 })
+    .populate('userId', 'firstName lastName profilePic')
+    .lean()
+  return posts.map(post => toListPost(post, type))
+}
+
+// Serve a post's image as a real image file
+router.get('/:id/image', async (req, res) => {
+  try {
+    const { id } = req.params
+    const post = (await LostItem.findById(id, 'imageUrl').lean()) || (await FoundItem.findById(id, 'imageUrl').lean())
+    const imageUrl = post && post.imageUrl
+    if (!imageUrl) return res.status(404).json({ message: 'Image not found' })
+
+    const match = /^data:([^;,]+)?(;base64)?,([\s\S]*)$/.exec(imageUrl)
+    if (!match) return res.redirect(imageUrl) // already a normal URL
+
+    const body = match[2] ? Buffer.from(match[3], 'base64') : Buffer.from(decodeURIComponent(match[3]))
+    res.set('Content-Type', match[1] || 'image/jpeg')
+    res.set('Cache-Control', 'public, max-age=31536000, immutable')
+    res.send(body)
+  } catch (error) {
+    res.status(500).json({ message: error.message })
+  }
+})
+
 // Get all posts
 router.get('/all', async (req, res) => {
   try {
-    const lostPosts = await LostItem.find().sort({ createdAt: -1 }).populate('userId')
-    const foundPosts = await FoundItem.find().sort({ createdAt: -1 }).populate('userId')
-
-    // Add type field to posts for consistency
-    const formattedLostPosts = lostPosts.map(post => ({ ...post.toObject(), type: 'lost' }))
-    const formattedFoundPosts = foundPosts.map(post => ({ ...post.toObject(), type: 'found' }))
+    const formattedLostPosts = await listPosts(LostItem, {}, 'lost')
+    const formattedFoundPosts = await listPosts(FoundItem, {}, 'found')
 
     // Combine and sort by creation date
     const allPosts = [...formattedLostPosts, ...formattedFoundPosts].sort((a, b) => 
@@ -76,15 +121,7 @@ router.get('/type/:type', async (req, res) => {
       return res.status(400).json({ message: 'Type must be either "lost" or "found"' })
     }
 
-    let posts;
-    if (type === 'lost') {
-      posts = await LostItem.find().sort({ createdAt: -1 }).populate('userId')
-    } else {
-      posts = await FoundItem.find().sort({ createdAt: -1 }).populate('userId')
-    }
-
-    // Add type field for consistency
-    const formattedPosts = posts.map(post => ({ ...post.toObject(), type }))
+    const formattedPosts = await listPosts(type === 'lost' ? LostItem : FoundItem, {}, type)
 
     res.json({
       message: `${type} items retrieved successfully`,
@@ -100,12 +137,12 @@ router.get('/user/:userId', async (req, res) => {
   try {
     const { userId } = req.params
 
-    const lostPosts = await LostItem.find({ userId }).sort({ createdAt: -1 }).populate('userId')
-    const foundPosts = await FoundItem.find({ userId }).sort({ createdAt: -1 }).populate('userId')
+    if (!mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({ message: 'Invalid user id' })
+    }
 
-    // Add type field to posts
-    const formattedLostPosts = lostPosts.map(post => ({ ...post.toObject(), type: 'lost' }))
-    const formattedFoundPosts = foundPosts.map(post => ({ ...post.toObject(), type: 'found' }))
+    const formattedLostPosts = await listPosts(LostItem, { userId }, 'lost')
+    const formattedFoundPosts = await listPosts(FoundItem, { userId }, 'found')
 
     // Combine and sort by creation date
     const userPosts = [...formattedLostPosts, ...formattedFoundPosts].sort((a, b) => 
@@ -127,11 +164,11 @@ router.get('/:id', async (req, res) => {
     const { id } = req.params
 
     // Try to find in LostItem first, then FoundItem
-    let post = await LostItem.findById(id).populate('userId')
+    let post = await LostItem.findById(id).populate('userId', 'firstName lastName profilePic')
     let type = 'lost'
 
     if (!post) {
-      post = await FoundItem.findById(id).populate('userId')
+      post = await FoundItem.findById(id).populate('userId', 'firstName lastName profilePic')
       type = 'found'
     }
 

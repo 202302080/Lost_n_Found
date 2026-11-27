@@ -1,9 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { StyleSheet, View, TouchableOpacity, Modal, Alert } from 'react-native';
+import { StyleSheet, View, TouchableOpacity, Modal, Alert, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import ThemedText from './ThemedText';
 import { API_URL } from '../lib/api';
+
+const MENU_WIDTH = 180;
+const MENU_HEIGHT = 100; // two rows + divider, used to decide whether to open upwards
 
 const PostOptionsMenu = ({ postId, onPostDeleted }) => {
     const [menuVisible, setMenuVisible] = useState(false);
@@ -46,13 +49,25 @@ const PostOptionsMenu = ({ postId, onPostDeleted }) => {
         setMenuVisible(false);
     };
 
+    // Open the menu right under the three-dot button, right edges aligned.
+    // (It used to sit a fixed 20pt from the screen edge, so on a two-column
+    // layout the left card's menu appeared over the right card.)
     const handleMenuOpen = () => {
         if (buttonRef.current) {
             buttonRef.current.measure((fx, fy, width, height, px, py) => {
-                setMenuPosition({
-                    top: py + height + 5,
-                    right: 20,
-                });
+                const { width: screenW, height: screenH } = Dimensions.get('window');
+                const EDGE = 8;
+
+                // right offset that lines the menu's right edge up with the button's,
+                // kept inside the screen on both sides
+                let right = screenW - (px + width);
+                right = Math.min(Math.max(right, EDGE), screenW - MENU_WIDTH - EDGE);
+
+                // below the button, or above it if there's no room at the bottom
+                let top = py + height + 6;
+                if (top + MENU_HEIGHT > screenH - EDGE) top = Math.max(EDGE, py - MENU_HEIGHT - 6);
+
+                setMenuPosition({ top, right });
                 setMenuVisible(true);
             });
         }
@@ -115,7 +130,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         backgroundColor: '#fff',
         borderRadius: 12,
-        width: 180,
+        width: MENU_WIDTH,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,

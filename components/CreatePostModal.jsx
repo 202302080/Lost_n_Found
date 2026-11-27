@@ -44,9 +44,9 @@ const CreatePostModal = ({ visible, onClose, onPostCreated }) => {
   const pickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
-        aspect: [4, 3],
+        aspect: [1, 1], // square, matching how posts are displayed
         quality: 0.3, // Lower quality for smaller file size
       });
 
@@ -107,6 +107,7 @@ const CreatePostModal = ({ visible, onClose, onPostCreated }) => {
         imageUrl: imageUrl,
         user: userName,
         userId: user.id,
+        avatar: user.profilePic || undefined,
       };
 
       const response = await axios.post(`${API_URL}/posts/create`, payload);

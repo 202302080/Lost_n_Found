@@ -1,4 +1,4 @@
-import { Keyboard, StyleSheet, Text, Image, TouchableWithoutFeedback, ScrollView } from 'react-native'
+import { Keyboard, StyleSheet, Text, View, Image, TouchableWithoutFeedback, ScrollView } from 'react-native'
 import { useRouter, Link } from 'expo-router'
 import { useState } from 'react'
 import { Alert } from 'react-native'
@@ -9,6 +9,7 @@ import Spacer from '../../components/Spacer'
 import ThemedText from '../../components/ThemedText'
 import ThemedButton from '../../components/ThemedButton'
 import ThemedTextInput from '../../components/ThemedTextInput'
+import PasswordInput from '../../components/PasswordInput'
 import { useUser } from '../../hooks/useUser'
 
 
@@ -49,6 +50,9 @@ const Login = () => {
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 <ThemedView style={styles.container}>
+                    {/* Card: logo, title, tagline, form fields and button */}
+                    <View style={styles.card}>
+
                     {/* Logo Section */}
                     <Image source={Logo} style={styles.logo} />
 
@@ -61,9 +65,6 @@ const Login = () => {
                         Find what's lost, return what's found
                     </ThemedText>
 
-                    <Spacer height={30} />
-
-
                     {/* Form Inputs */}
                     <ThemedTextInput
                         style={styles.input}
@@ -75,13 +76,12 @@ const Login = () => {
                         value={email}
                     />
 
-                    <ThemedTextInput
+                    <PasswordInput
                         style={styles.input}
                         placeholder="Password"
                         placeholderTextColor="#999"
                         onChangeText={setPassword}
                         value={password}
-                        secureTextEntry
                     />
 
                     <Spacer height={10} />
@@ -96,8 +96,7 @@ const Login = () => {
                             {loading ? 'Logging in...' : 'Login'}
                         </Text>
                     </ThemedButton>
-
-                    <Spacer height={20} />
+                    </View>
 
                     {/* Sign Up Link */}
                     <ThemedText style={styles.signupText}>
@@ -116,6 +115,22 @@ const Login = () => {
 export default Login
 
 const styles = StyleSheet.create({
+    // Logo, title, tagline, fields and button sit in a card: full width on phones, 440 wide on tablets
+    card: {
+        width: '100%',
+        maxWidth: 440,
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        paddingHorizontal: 24,
+        paddingVertical: 24,
+        alignItems: 'center',
+        marginBottom: 8,
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+    },
     scrollContainer: {
         flexGrow: 1,
         justifyContent: 'center',
@@ -143,7 +158,7 @@ const styles = StyleSheet.create({
     subtitle: {
         fontSize: 14,
         textAlign: 'center',
-        marginBottom: 35,
+        marginBottom: 24,
         opacity: 0.7,
         fontStyle: 'italic',
     },
@@ -156,12 +171,17 @@ const styles = StyleSheet.create({
     },
     input: {
         width: '100%',
+        backgroundColor: '#f4f4f7',
+        borderWidth: 1,
+        borderColor: '#e2e2e8',
+        color: '#222',
         marginBottom: 16,
         borderRadius: 10,
         paddingVertical: 12,
     },
     button: {
         width: '100%',
+        maxWidth: 440,
         marginTop: 8,
         borderRadius: 10,
     },
@@ -174,7 +194,7 @@ const styles = StyleSheet.create({
     signupText: {
         textAlign: 'center',
         fontSize: 14,
-        marginTop: 25,
+        marginTop: 12,
     },
     signupLink: {
         color: '#008000',
